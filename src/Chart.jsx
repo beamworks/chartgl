@@ -1,16 +1,28 @@
 import React from 'react';
 import reglInit from 'regl';
-import { mat4, vec3 } from 'gl-matrix';
+import onecolor from 'onecolor';
+import { mat4, vec3, vec4 } from 'gl-matrix';
 
 const ASPECT_RATIO = 800 / 600; // @todo change
 
 class Chart extends React.PureComponent {
-    constructor() {
+    constructor({ palette }) {
         super();
 
         this.state = {
             graphicsInitialized: false
         }
+
+        this._palette = palette.map(cssHex => {
+            const c = onecolor(cssHex);
+
+            return vec4.fromValues(
+                c.red(),
+                c.green(),
+                c.blue(),
+                1
+            );
+        });
 
         this._regl = null; // initialized after first render
 
@@ -45,8 +57,10 @@ class Chart extends React.PureComponent {
             frag: `
                 precision mediump float;
 
+                uniform vec4 color;
+
                 void main() {
-                    gl_FragColor = vec4(0, 0, 0, 1.0);
+                    gl_FragColor = color;
                 }
             `,
 
@@ -60,7 +74,8 @@ class Chart extends React.PureComponent {
             },
 
             uniforms: {
-                camera: this._regl.prop('camera')
+                camera: this._regl.prop('camera'),
+                color: this._regl.prop('color')
             },
 
             primitive: 'triangle fan',
@@ -87,7 +102,8 @@ class Chart extends React.PureComponent {
             mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
             this._testCommand({
-                camera: this._cameraMat4
+                camera: this._cameraMat4,
+                color: this._palette[1]
             });
         }
 

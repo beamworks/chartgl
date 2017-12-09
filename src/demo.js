@@ -4,9 +4,12 @@ import ReactDOM from 'react-dom';
 
 import Chart from './Chart.jsx';
 
-document.body.style.background = colorPalettes[1][0];
+const palette = colorPalettes[1];
+document.body.style.background = palette[0];
 
 ReactDOM.render(
-    React.createElement(Chart),
+    React.createElement(Chart, {
+        palette: palette
+    }),
     document.getElementById('demo')
 );
