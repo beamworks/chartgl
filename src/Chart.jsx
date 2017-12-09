@@ -10,6 +10,7 @@ class Chart extends React.PureComponent {
         super();
 
         this.state = {
+            series: Array.apply(null, new Array(5)).map(() => Math.random()),
             graphicsInitialized: false
         }
 
@@ -172,18 +173,21 @@ class Chart extends React.PureComponent {
             mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
             // camera offset
-            vec3.set(this._cameraPositionVec3, 0, 0, -3);
+            vec3.set(this._cameraPositionVec3, 0, 0, -2.5);
             mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
             // chart bar display
-            vec2.set(this._barBaseVec2, 0, 0);
+            const startX = -(this.state.series.length - 1) / 2;
+            this.state.series.map((value, index) => {
+                vec2.set(this._barBaseVec2, index + startX, 0);
 
-            this._barCommand({
-                camera: this._cameraMat4,
-                base: this._barBaseVec2,
-                radius: 0.5,
-                height: 3,
-                color: this._palette[4]
+                this._barCommand({
+                    camera: this._cameraMat4,
+                    base: this._barBaseVec2,
+                    radius: 0.4,
+                    height: 3 * value,
+                    color: this._palette[4]
+                });
             });
         }
 
