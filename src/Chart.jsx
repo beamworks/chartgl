@@ -70,16 +70,16 @@ class Chart extends React.PureComponent {
             frag: `
                 precision mediump float;
 
-                uniform vec3 color;
+                uniform vec3 baseColor, highlightColor;
 
                 varying vec3 fragNormal;
 
                 void main() {
-                    vec3 lightDir = normalize(vec3(-0.5, 0.5, 1.0));
+                    vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
 
                     float light = max(0.0, dot(fragNormal, lightDir));
 
-                    gl_FragColor = vec4(color * (1.0 + light * 0.4), 1.0);
+                    gl_FragColor = vec4(mix(baseColor, highlightColor, light), 1.0);
                 }
             `,
 
@@ -146,7 +146,8 @@ class Chart extends React.PureComponent {
                 base: this._regl.prop('base'),
                 radius: this._regl.prop('radius'),
                 height: this._regl.prop('height'),
-                color: this._regl.prop('color')
+                baseColor: this._regl.prop('baseColor'),
+                highlightColor: this._regl.prop('highlightColor')
             },
 
             primitive: 'triangle strip',
@@ -169,7 +170,7 @@ class Chart extends React.PureComponent {
             mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
             // camera orbit pitch and yaw
-            mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.4);
+            mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.1);
             mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
             // camera offset
@@ -186,7 +187,8 @@ class Chart extends React.PureComponent {
                     base: this._barBaseVec2,
                     radius: 0.4,
                     height: 3 * value,
-                    color: this._palette[4]
+                    baseColor: this._palette[4],
+                    highlightColor: this._palette[3]
                 });
             });
         }
