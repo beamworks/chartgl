@@ -16,11 +16,10 @@ class Chart extends React.PureComponent {
         this._palette = palette.map(cssHex => {
             const c = onecolor(cssHex);
 
-            return vec4.fromValues(
+            return vec3.fromValues(
                 c.red(),
                 c.green(),
-                c.blue(),
-                1
+                c.blue()
             );
         });
 
@@ -52,8 +51,13 @@ class Chart extends React.PureComponent {
                 uniform float radius, height;
 
                 attribute vec3 position;
+                attribute vec3 normal;
+
+                varying vec3 fragNormal;
 
                 void main() {
+                    fragNormal = normal;
+
                     gl_Position = camera * vec4(
                         base + position.xy * radius,
                         position.z * height,
@@ -65,10 +69,16 @@ class Chart extends React.PureComponent {
             frag: `
                 precision mediump float;
 
-                uniform vec4 color;
+                uniform vec3 color;
+
+                varying vec3 fragNormal;
 
                 void main() {
-                    gl_FragColor = color;
+                    vec3 lightDir = normalize(vec3(-0.5, 0.5, 1.0));
+
+                    float light = max(0.0, dot(fragNormal, lightDir));
+
+                    gl_FragColor = vec4(color * (1.0 + light * 0.4), 1.0);
                 }
             `,
 
@@ -99,6 +109,34 @@ class Chart extends React.PureComponent {
                     [ 1, -1, 1 ],
                     [ -1, 1, 1 ],
                     [ 1,  1, 1 ]
+                ]),
+
+                normal: this._regl.buffer([
+                    // left face
+                    [ -1, 0, 0 ],
+                    [ -1, 0, 0 ],
+                    [ -1, 0, 0 ],
+                    [ -1, 0, 0 ],
+
+                    // degen connector
+                    [ -1, 0, 0 ],
+                    [ 0, -1, 0 ],
+
+                    // front face
+                    [ 0, -1, 0 ],
+                    [ 0, -1, 0 ],
+                    [ 0, -1, 0 ],
+                    [ 0, -1, 0 ],
+
+                    // degen connector
+                    [ 0, -1, 0 ],
+                    [ 0, 0, 1 ],
+
+                    // top face
+                    [ 0, 0, 1 ],
+                    [ 0, 0, 1 ],
+                    [ 0, 0, 1 ],
+                    [ 0, 0, 1 ]
                 ])
             },
 
@@ -145,7 +183,7 @@ class Chart extends React.PureComponent {
                 base: this._barBaseVec2,
                 radius: 0.5,
                 height: 3,
-                color: this._palette[1]
+                color: this._palette[4]
             });
         }
 
