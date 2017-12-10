@@ -4,6 +4,16 @@ import reglInit from 'regl';
 import onecolor from 'onecolor';
 import { mat4, vec2, vec3 } from 'gl-matrix';
 
+function hex2vector(cssHex) {
+    const pc = onecolor(cssHex);
+
+    return vec3.fromValues(
+        pc.red(),
+        pc.green(),
+        pc.blue()
+    );
+}
+
 class Chart extends React.PureComponent {
     constructor({
         width,
@@ -26,17 +36,6 @@ class Chart extends React.PureComponent {
         this.state.series.forEach((value, index) => {
             this._motionDefaultStyle[index] = 0;
             this._motionStyle[index] = spring(value, { stiffness: 220, damping: 15 });
-        });
-
-        this._paletteCss = palette;
-        this._palette = palette.map(cssHex => {
-            const pc = onecolor(cssHex);
-
-            return vec3.fromValues(
-                pc.red(),
-                pc.green(),
-                pc.blue()
-            );
         });
 
         this._regl = null; // initialized after first render
@@ -178,6 +177,10 @@ class Chart extends React.PureComponent {
 
     // eslint-disable-next-line max-statements
     render() {
+        const baseColor = hex2vector(this.props.baseColor);
+        const highlightColor = hex2vector(this.props.highlightColor);
+        const labelColorCss = this.props.labelColor;
+
         mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, 5000);
 
         // camera position
@@ -237,8 +240,8 @@ class Chart extends React.PureComponent {
                         base: this._barBaseVec2,
                         radius: 40,
                         height: 300 * motionValue,
-                        baseColor: this._palette[4],
-                        highlightColor: this._palette[3]
+                        baseColor: baseColor,
+                        highlightColor: highlightColor
                     });
                 }) || null
             ) : null}
@@ -262,7 +265,7 @@ class Chart extends React.PureComponent {
                     fontSize: '40px',
                     lineHeight: 1,
                     letterSpacing: '-2px',
-                    color: this._paletteCss[1]
+                    color: labelColorCss
                 }, 'CHART X-AXIS')}
 
                 {renderOverlaySpan(`translate(${-startX + 60}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
@@ -272,7 +275,7 @@ class Chart extends React.PureComponent {
                     fontSize: '48px',
                     lineHeight: 1,
                     letterSpacing: '-2px',
-                    color: this._paletteCss[1]
+                    color: labelColorCss
                 }, 'Z-AXIS')}
             </div>
         </div>}</Motion>;

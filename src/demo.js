@@ -11,7 +11,9 @@ document.body.style.background = palette[0];
 const rootElement = React.createElement(Chart, {
     width: 640,
     height: 480,
-    palette: palette
+    baseColor: palette[4],
+    highlightColor: palette[3],
+    labelColor: palette[1]
 });
 
 // render after resources are ready
