@@ -242,23 +242,24 @@ class Chart extends React.PureComponent {
                 transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
             }}>
                 {renderOverlaySpan(`translate(${startX - 40}px, -60px)`, {
-                    width: '400px',
-                    height: '80px',
+                    whiteSpace: 'nowrap',
 
-                    fontFamily: 'Arial, sans-serif',
+                    fontFamily: 'Michroma, Arial, sans-serif',
                     fontSize: '40px',
+                    lineHeight: 1,
+                    letterSpacing: '-2px',
                     color: this._paletteCss[1]
-                }, 'Chart X Axis')}
+                }, 'CHART X-AXIS')}
 
-                {renderOverlaySpan(`translate(${startX - 60}px, 200px) rotateZ(-90deg)`, {
-                    width: '400px',
-                    height: '60px',
-                    textAlign: 'center',
+                {renderOverlaySpan(`translate(${-startX + 60}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                    whiteSpace: 'nowrap',
 
-                    fontFamily: 'Arial, sans-serif',
-                    fontSize: '40px',
+                    fontFamily: 'Michroma, Arial, sans-serif',
+                    fontSize: '48px',
+                    lineHeight: 1,
+                    letterSpacing: '-2px',
                     color: this._paletteCss[1]
-                }, 'Chart Y Axis')}
+                }, 'Z-AXIS')}
             </div>
         </div>;
     }
