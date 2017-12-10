@@ -9,6 +9,8 @@ document.body.style.background = palette[0];
 
 ReactDOM.render(
     React.createElement(Chart, {
+        width: 640,
+        height: 480,
         palette: palette
     }),
     document.getElementById('demo')

@@ -3,16 +3,21 @@ import reglInit from 'regl';
 import onecolor from 'onecolor';
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
 
-const ASPECT_RATIO = 800 / 600; // @todo change
-
 class Chart extends React.PureComponent {
-    constructor({ palette }) {
+    constructor({
+        width,
+        height,
+        palette
+    }) {
         super();
 
         this.state = {
             series: Array.apply(null, new Array(5)).map(() => Math.random()),
             graphicsInitialized: false
         }
+
+        this._width = width;
+        this._height = height;
 
         this._paletteCss = palette;
         this._palette = palette.map(cssHex => {
@@ -163,18 +168,18 @@ class Chart extends React.PureComponent {
     }
 
     render() {
-        mat4.perspective(this._cameraMat4, 0.6, ASPECT_RATIO, 1, 5000);
+        mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, 5000);
 
         // camera position
         vec3.set(this._cameraPositionVec3, 0, 0, -1200);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // camera orbit pitch and yaw
-        mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.1);
+        mat4.rotateX(this._cameraMat4, this._cameraMat4, -0.9);
         mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
         // camera offset
-        vec3.set(this._cameraPositionVec3, 0, 0, -250);
+        vec3.set(this._cameraPositionVec3, 0, 0, -100);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // chart 3D layout
@@ -218,8 +223,8 @@ class Chart extends React.PureComponent {
             style={{
                 position: 'relative',
                 display: 'inline-block',
-                width: '800px',
-                height: '600px',
+                width: this._width + 'px',
+                height: this._height + 'px',
                 overflow: 'hidden' // clip contents
             }}
         >
@@ -233,7 +238,7 @@ class Chart extends React.PureComponent {
 
                 // center transform and emulate WebGL device coord range (-1, 1)
                 transformStyle: 'preserve-3d',
-                transform: 'translate(400px, 300px) scale(400, -300)'
+                transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
             }}>
                 {renderOverlaySpan(`translate(${startX - 40}px, -60px)`, {
                     width: '400px',
