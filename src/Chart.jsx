@@ -14,6 +14,7 @@ class Chart extends React.PureComponent {
             graphicsInitialized: false
         }
 
+        this._paletteCss = palette;
         this._palette = palette.map(cssHex => {
             const c = onecolor(cssHex);
 
@@ -162,45 +163,98 @@ class Chart extends React.PureComponent {
     }
 
     render() {
+        mat4.perspective(this._cameraMat4, 0.6, ASPECT_RATIO, 1, 5000);
+
+        // camera position
+        vec3.set(this._cameraPositionVec3, 0, 0, -1200);
+        mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
+
+        // camera orbit pitch and yaw
+        mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.1);
+        mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
+
+        // camera offset
+        vec3.set(this._cameraPositionVec3, 0, 0, -250);
+        mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
+
+        // chart 3D layout
+        const startX = -100 * (this.state.series.length - 1) / 2;
+
         if (this._regl) {
-            mat4.perspective(this._cameraMat4, 0.6, ASPECT_RATIO, 1, 50);
-
-            // camera position
-            vec3.set(this._cameraPositionVec3, 0, 0, -12);
-            mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
-
-            // camera orbit pitch and yaw
-            mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.1);
-            mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
-
-            // camera offset
-            vec3.set(this._cameraPositionVec3, 0, 0, -2.5);
-            mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
-
             // chart bar display
-            const startX = -(this.state.series.length - 1) / 2;
             this.state.series.map((value, index) => {
-                vec2.set(this._barBaseVec2, index + startX, 0);
+                vec2.set(this._barBaseVec2, index * 100 + startX, 0);
 
                 this._barCommand({
                     camera: this._cameraMat4,
                     base: this._barBaseVec2,
-                    radius: 0.4,
-                    height: 3 * value,
+                    radius: 40,
+                    height: 300 * value,
                     baseColor: this._palette[4],
                     highlightColor: this._palette[3]
                 });
             });
         }
 
+        const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
+
+        const renderOverlaySpan = (modelTransform, style, content) => {
+            return <span style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+
+                // transform in the XY plane, flipping first, and apply camera matrix
+                transformStyle: 'preserve-3d',
+                transformOrigin: '0 0',
+                transform: `${cameraCssMat} ${modelTransform} scale(1, -1)`,
+
+                ...style
+            }}>{content}</span>;
+        };
+
         return <div
             ref={this._handleNodeRef}
             style={{
+                position: 'relative',
                 display: 'inline-block',
                 width: '800px',
-                height: '600px'
+                height: '600px',
+                overflow: 'hidden' // clip contents
             }}
-        />;
+        >
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0,
+                zIndex: 1, // lift above main chart
+
+                // center transform and emulate WebGL device coord range (-1, 1)
+                transformStyle: 'preserve-3d',
+                transform: 'translate(400px, 300px) scale(400, -300)'
+            }}>
+                {renderOverlaySpan(`translate(${startX - 40}px, -60px)`, {
+                    width: '400px',
+                    height: '80px',
+
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '40px',
+                    color: this._paletteCss[1]
+                }, 'Chart X Axis')}
+
+                {renderOverlaySpan(`translate(${startX - 60}px, 200px) rotateZ(-90deg)`, {
+                    width: '400px',
+                    height: '60px',
+                    textAlign: 'center',
+
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '40px',
+                    color: this._paletteCss[1]
+                }, 'Chart Y Axis')}
+            </div>
+        </div>;
     }
 }
 
