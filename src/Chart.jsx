@@ -87,6 +87,7 @@ class Chart extends React.PureComponent {
 
                 uniform vec3 baseColor, secondaryColor, highlightColor;
                 uniform float radius, height;
+                uniform int patternIndex;
 
                 varying vec3 fragPosition;
                 varying vec3 fragNormal;
@@ -97,6 +98,28 @@ class Chart extends React.PureComponent {
                         - fragPosition.x
                         + (height - fragPosition.z)
                     ), 50.0));
+                }
+
+                float stripe2Pattern() {
+                    return step(25.0, mod((
+                        fragPosition.x
+                        - fragPosition.y
+                        + (height - fragPosition.z)
+                    ), 50.0));
+                }
+
+                float checkerPattern() {
+                    vec3 cellPosition = vec3(0, 0, height) - fragPosition;
+                    float cellSize = radius * 0.5;
+
+                    vec3 cellIndex = cellPosition / cellSize;
+                    float dotChoice = mod((
+                        step(1.0, mod(cellIndex.x, 2.0))
+                        + step(1.0, mod(cellIndex.y, 2.0))
+                        + step(1.0, mod(cellIndex.z, 2.0))
+                    ), 2.0);
+
+                    return dotChoice;
                 }
 
                 float dotPattern() {
@@ -116,8 +139,28 @@ class Chart extends React.PureComponent {
                     return dotChoice * step(dotDistance, 0.5);
                 }
 
+                float pattern() {
+                    if (patternIndex == 0) {
+                        return stripePattern();
+                    }
+
+                    if (patternIndex == 1) {
+                        return stripe2Pattern();
+                    }
+
+                    if (patternIndex == 2) {
+                        return checkerPattern();
+                    }
+
+                    if (patternIndex == 3) {
+                        return dotPattern();
+                    }
+
+                    return 0.0;
+                }
+
                 void main() {
-                    vec3 pigmentColor = mix(baseColor, secondaryColor, dotPattern());
+                    vec3 pigmentColor = mix(baseColor, secondaryColor, pattern());
 
                     vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                     float light = max(0.0, dot(fragNormal, lightDir));
@@ -189,6 +232,7 @@ class Chart extends React.PureComponent {
                 base: this._regl.prop('base'),
                 radius: this._regl.prop('radius'),
                 height: this._regl.prop('height'),
+                patternIndex: this._regl.prop('patternIndex'),
                 baseColor: this._regl.prop('baseColor'),
                 secondaryColor: this._regl.prop('secondaryColor'),
                 highlightColor: this._regl.prop('highlightColor')
@@ -271,6 +315,7 @@ class Chart extends React.PureComponent {
                         base: this._barBaseVec2,
                         radius: 40,
                         height: 300 * motionValue,
+                        patternIndex: index % 4,
                         baseColor: baseColor,
                         secondaryColor: secondaryColor,
                         highlightColor: highlightColor
