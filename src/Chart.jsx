@@ -68,32 +68,44 @@ class Chart extends React.PureComponent {
                 attribute vec3 position;
                 attribute vec3 normal;
 
+                varying vec3 fragPosition;
                 varying vec3 fragNormal;
 
                 void main() {
+                    fragPosition = vec3(
+                        base + position.xy * radius,
+                        position.z * height
+                    );
                     fragNormal = normal;
 
-                    gl_Position = camera * vec4(
-                        base + position.xy * radius,
-                        position.z * height,
-                        1.0
-                    );
+                    gl_Position = camera * vec4(fragPosition, 1.0);
                 }
             `,
 
             frag: `
                 precision mediump float;
 
-                uniform vec3 baseColor, highlightColor;
+                uniform vec3 baseColor, secondaryColor, highlightColor;
+                uniform float height;
 
+                varying vec3 fragPosition;
                 varying vec3 fragNormal;
 
-                void main() {
-                    vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
+                float pattern() {
+                    return step(25.0, mod((
+                        fragPosition.y
+                        - fragPosition.x
+                        + (height - fragPosition.z)
+                    ), 50.0));
+                }
 
+                void main() {
+                    vec3 pigmentColor = mix(baseColor, secondaryColor, pattern());
+
+                    vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                     float light = max(0.0, dot(fragNormal, lightDir));
 
-                    gl_FragColor = vec4(mix(baseColor, highlightColor, light), 1.0);
+                    gl_FragColor = vec4(mix(pigmentColor, highlightColor, light), 1.0);
                 }
             `,
 
@@ -161,6 +173,7 @@ class Chart extends React.PureComponent {
                 radius: this._regl.prop('radius'),
                 height: this._regl.prop('height'),
                 baseColor: this._regl.prop('baseColor'),
+                secondaryColor: this._regl.prop('secondaryColor'),
                 highlightColor: this._regl.prop('highlightColor')
             },
 
@@ -178,6 +191,7 @@ class Chart extends React.PureComponent {
     // eslint-disable-next-line max-statements
     render() {
         const baseColor = hex2vector(this.props.baseColor);
+        const secondaryColor = hex2vector(this.props.secondaryColor);
         const highlightColor = hex2vector(this.props.highlightColor);
         const labelColorCss = this.props.labelColor;
 
@@ -241,6 +255,7 @@ class Chart extends React.PureComponent {
                         radius: 40,
                         height: 300 * motionValue,
                         baseColor: baseColor,
+                        secondaryColor: secondaryColor,
                         highlightColor: highlightColor
                     });
                 }) || null

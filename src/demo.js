@@ -12,7 +12,8 @@ const rootElement = React.createElement(Chart, {
     width: 640,
     height: 480,
     baseColor: palette[4],
-    highlightColor: palette[3],
+    secondaryColor: palette[3],
+    highlightColor: palette[2],
     labelColor: palette[1]
 });
 
