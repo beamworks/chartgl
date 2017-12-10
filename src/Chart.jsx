@@ -72,13 +72,19 @@ class Chart extends React.PureComponent {
                 varying vec3 fragNormal;
 
                 void main() {
+                    float z = position.z * height;
+
                     fragPosition = vec3(
-                        position.xy * radius,
-                        position.z * height
+                        (position.xy + vec2(1.0, 1.0)) * radius,
+                        z
                     );
                     fragNormal = normal;
 
-                    gl_Position = camera * vec4(vec3(base, 0.0) + fragPosition, 1.0);
+                    gl_Position = camera * vec4(
+                        base + position.xy * radius,
+                        z,
+                        1.0
+                    );
                 }
             `,
 
@@ -86,7 +92,7 @@ class Chart extends React.PureComponent {
                 precision mediump float;
 
                 uniform vec3 baseColor, secondaryColor, highlightColor;
-                uniform float radius, height;
+                uniform float height;
                 uniform int patternIndex;
 
                 varying vec3 fragPosition;
@@ -110,7 +116,7 @@ class Chart extends React.PureComponent {
 
                 float checkerPattern() {
                     vec3 cellPosition = vec3(0, 0, height) - fragPosition;
-                    float cellSize = radius * 0.5;
+                    float cellSize = 20.0;
 
                     vec3 cellIndex = cellPosition / cellSize;
                     float dotChoice = mod((
@@ -125,7 +131,7 @@ class Chart extends React.PureComponent {
                 float dotPattern() {
                     vec3 attachedPos = vec3(0, 0, height) - fragPosition;
 
-                    float dotSize = radius * 0.25;
+                    float dotSize = 15.0;
                     vec3 dotPosition = attachedPos + dotSize * 0.5;
                     float dotDistance = length(mod(dotPosition, dotSize) / dotSize - vec3(0.5));
 
