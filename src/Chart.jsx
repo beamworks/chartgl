@@ -1,4 +1,5 @@
 import React from 'react';
+import { Motion, spring } from 'react-motion';
 import reglInit from 'regl';
 import onecolor from 'onecolor';
 import { mat4, vec2, vec3 } from 'gl-matrix';
@@ -18,6 +19,14 @@ class Chart extends React.PureComponent {
 
         this._width = width;
         this._height = height;
+
+        this._motionDefaultStyle = {};
+        this._motionStyle = {};
+
+        this.state.series.forEach((value, index) => {
+            this._motionDefaultStyle[index] = 0;
+            this._motionStyle[index] = spring(value, { stiffness: 220, damping: 15 });
+        });
 
         this._paletteCss = palette;
         this._palette = palette.map(cssHex => {
@@ -186,22 +195,6 @@ class Chart extends React.PureComponent {
         // chart 3D layout
         const startX = -100 * (this.state.series.length - 1) / 2;
 
-        if (this._regl) {
-            // chart bar display
-            this.state.series.forEach((value, index) => {
-                vec2.set(this._barBaseVec2, (index * 100) + startX, 0);
-
-                this._barCommand({
-                    camera: this._cameraMat4,
-                    base: this._barBaseVec2,
-                    radius: 40,
-                    height: 300 * value,
-                    baseColor: this._palette[4],
-                    highlightColor: this._palette[3]
-                });
-            });
-        }
-
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
         function renderOverlaySpan(modelTransform, style, content) {
@@ -219,7 +212,10 @@ class Chart extends React.PureComponent {
             }}>{content}</span>;
         }
 
-        return <div
+        return <Motion
+            defaultStyle={this._motionDefaultStyle}
+            style={this._motionStyle}
+        >{motion => <div
             ref={this._handleNodeRef}
             style={{
                 position: 'relative',
@@ -229,6 +225,24 @@ class Chart extends React.PureComponent {
                 overflow: 'hidden' // clip contents
             }}
         >
+            {this._regl ? (
+                // chart bar display
+                this.state.series.forEach((value, index) => {
+                    const motionValue = motion[index];
+
+                    vec2.set(this._barBaseVec2, (index * 100) + startX, 0);
+
+                    this._barCommand({
+                        camera: this._cameraMat4,
+                        base: this._barBaseVec2,
+                        radius: 40,
+                        height: 300 * motionValue,
+                        baseColor: this._palette[4],
+                        highlightColor: this._palette[3]
+                    });
+                }) || null
+            ) : null}
+
             <div style={{
                 position: 'absolute',
                 top: 0,
@@ -261,7 +275,7 @@ class Chart extends React.PureComponent {
                     color: this._paletteCss[1]
                 }, 'Z-AXIS')}
             </div>
-        </div>;
+        </div>}</Motion>;
     }
 }
 
