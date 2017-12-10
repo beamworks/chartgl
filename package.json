@@ -6,7 +6,9 @@
   "scripts": {
     "eslint": "eslint --ext js --ext jsx src",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "webpack-dev-server"
+    "watch": "webpack-dev-server",
+    "build": "webpack",
+    "deploy": "npm run build && surge -p dist -d chartgl.surge.sh"
   },
   "author": "Nick Matantsev <nick.matantsev@beamworks.io>",
   "license": "ISC",
@@ -14,7 +16,8 @@
     "babel-eslint": "^7.2.3",
     "eslint": "^4.3.0",
     "eslint-plugin-babel": "^4.1.1",
-    "eslint-plugin-react": "^7.1.0"
+    "eslint-plugin-react": "^7.1.0",
+    "surge": "^0.19.0"
   },
   "dependencies": {
     "babel-core": "^6.25.0",
