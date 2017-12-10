@@ -73,12 +73,12 @@ class Chart extends React.PureComponent {
 
                 void main() {
                     fragPosition = vec3(
-                        base + position.xy * radius,
+                        position.xy * radius,
                         position.z * height
                     );
                     fragNormal = normal;
 
-                    gl_Position = camera * vec4(fragPosition, 1.0);
+                    gl_Position = camera * vec4(vec3(base, 0.0) + fragPosition, 1.0);
                 }
             `,
 
@@ -86,12 +86,12 @@ class Chart extends React.PureComponent {
                 precision mediump float;
 
                 uniform vec3 baseColor, secondaryColor, highlightColor;
-                uniform float height;
+                uniform float radius, height;
 
                 varying vec3 fragPosition;
                 varying vec3 fragNormal;
 
-                float pattern() {
+                float stripePattern() {
                     return step(25.0, mod((
                         fragPosition.y
                         - fragPosition.x
@@ -99,8 +99,25 @@ class Chart extends React.PureComponent {
                     ), 50.0));
                 }
 
+                float dotPattern() {
+                    vec3 attachedPos = vec3(0, 0, height) - fragPosition;
+
+                    float dotSize = radius * 0.25;
+                    vec3 dotPosition = attachedPos + dotSize * 0.5;
+                    float dotDistance = length(mod(dotPosition, dotSize) / dotSize - vec3(0.5));
+
+                    vec3 dotIndex = dotPosition / dotSize;
+                    float dotChoice = mod((
+                        step(1.0, mod(dotIndex.x, 2.0))
+                        + step(1.0, mod(dotIndex.y, 2.0))
+                        + step(1.0, mod(dotIndex.z, 2.0))
+                    ), 2.0);
+
+                    return dotChoice * step(dotDistance, 0.5);
+                }
+
                 void main() {
-                    vec3 pigmentColor = mix(baseColor, secondaryColor, pattern());
+                    vec3 pigmentColor = mix(baseColor, secondaryColor, dotPattern());
 
                     vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                     float light = max(0.0, dot(fragNormal, lightDir));
