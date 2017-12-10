@@ -1,7 +1,7 @@
 import React from 'react';
 import reglInit from 'regl';
 import onecolor from 'onecolor';
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix';
+import { mat4, vec2, vec3 } from 'gl-matrix';
 
 class Chart extends React.PureComponent {
     constructor({
@@ -12,21 +12,21 @@ class Chart extends React.PureComponent {
         super();
 
         this.state = {
-            series: Array.apply(null, new Array(5)).map(() => Math.random()),
+            series: Array(...new Array(5)).map(() => Math.random()),
             graphicsInitialized: false
-        }
+        };
 
         this._width = width;
         this._height = height;
 
         this._paletteCss = palette;
         this._palette = palette.map(cssHex => {
-            const c = onecolor(cssHex);
+            const pc = onecolor(cssHex);
 
             return vec3.fromValues(
-                c.red(),
-                c.green(),
-                c.blue()
+                pc.red(),
+                pc.green(),
+                pc.blue()
             );
         });
 
@@ -115,7 +115,7 @@ class Chart extends React.PureComponent {
                     [ -1, -1, 1 ],
                     [ 1, -1, 1 ],
                     [ -1, 1, 1 ],
-                    [ 1,  1, 1 ]
+                    [ 1, 1, 1 ]
                 ]),
 
                 normal: this._regl.buffer([
@@ -167,6 +167,7 @@ class Chart extends React.PureComponent {
         this.setState({ graphicsInitialized: true });
     }
 
+    // eslint-disable-next-line max-statements
     render() {
         mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, 5000);
 
@@ -187,8 +188,8 @@ class Chart extends React.PureComponent {
 
         if (this._regl) {
             // chart bar display
-            this.state.series.map((value, index) => {
-                vec2.set(this._barBaseVec2, index * 100 + startX, 0);
+            this.state.series.forEach((value, index) => {
+                vec2.set(this._barBaseVec2, (index * 100) + startX, 0);
 
                 this._barCommand({
                     camera: this._cameraMat4,
@@ -203,7 +204,7 @@ class Chart extends React.PureComponent {
 
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
-        const renderOverlaySpan = (modelTransform, style, content) => {
+        function renderOverlaySpan(modelTransform, style, content) {
             return <span style={{
                 position: 'absolute',
                 top: 0,
@@ -216,7 +217,7 @@ class Chart extends React.PureComponent {
 
                 ...style
             }}>{content}</span>;
-        };
+        }
 
         return <div
             ref={this._handleNodeRef}
