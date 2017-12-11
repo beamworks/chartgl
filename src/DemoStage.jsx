@@ -93,18 +93,18 @@ class DemoStage extends React.PureComponent {
 
         if (mode < 0.2) {
             this.setState({
-                xLabel: 'PRICE: ' + mockCoinList[Math.floor(Math.random() * mockCoinList.length)],
-                yLabel: 'USD 1000'
+                xLabel: 'CRYPTO: ' + mockCoinList[Math.floor(Math.random() * mockCoinList.length)],
+                yLabel: 'PRICE'
             });
         } else if (mode < 0.6) {
             this.setState({
                 xLabel: 'SALES: ' + mockProductList[Math.floor(Math.random() * mockProductList.length)],
-                yLabel: 'UNITS'
+                yLabel: 'VOLUME'
             });
         } else {
             this.setState({
                 xLabel: 'STOCK: ' + mockIndustryList[Math.floor(Math.random() * mockIndustryList.length)],
-                yLabel: 'TRADES'
+                yLabel: 'TRADE'
             });
         }
 
