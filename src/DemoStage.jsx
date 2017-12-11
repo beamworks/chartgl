@@ -10,6 +10,73 @@ const boopSound = new Howl({
     src: [ boopUrl ]
 });
 
+const mockCoinList = [
+    'BITCOIN',
+    'ETHEREUM',
+    'DOGECOIN'
+];
+
+const mockProductList = [
+    'Burritos',
+    'Flat Bread',
+    'Mushrooms',
+    'Canelloni',
+    'Spring Water',
+    'Evaporated Milk',
+    'Pears',
+    'Pork',
+    'Passion Fruit',
+    'Iced Tea',
+    'Blueberry',
+    'Spinach',
+    'Tomato',
+    'Fuji Apples',
+    'Cream Soda',
+    'Pepper Squash',
+    'Mozzarella',
+    'Artichoke Hearts',
+    'Smoked Paprika',
+    'Muffin Mix',
+    'Arctic Char',
+    'Bagels',
+    'Enoki Mushroom',
+    'Ground Ginger',
+    'Caesar Salad',
+    'Spaghetti',
+    'Venison',
+    'Beets',
+    'Crab Meat',
+    'Tomato Paste',
+    'Pastry Flour',
+    'Chilli Paste'
+];
+
+const mockIndustryList = [
+    'Auto Parts',
+    'Biotechnology',
+    'Business Services',
+    'Commercial Banks',
+    'Department Stores',
+    'Utilities',
+    'Electronics',
+    'Hotels',
+    'Major Banks',
+    'Major Chemicals',
+    'Major Pharma',
+    'Medical',
+    'Mining',
+    'Office Supplies',
+    'Oil & Gas',
+    'Consumer Services',
+    'Precision Instruments',
+    'Real Estate',
+    'Restaurants',
+    'Semiconductors',
+    'Telecommunications',
+    'Television',
+    'Trucking'
+];
+
 class DemoStage extends React.PureComponent {
     constructor() {
         super();
@@ -17,6 +84,35 @@ class DemoStage extends React.PureComponent {
         this.state = {
             version: 0
         };
+    }
+
+    componentWillMount() {
+        this._resetChart();
+    }
+
+    _resetChart() {
+        const mode = Math.random();
+
+        if (mode < 0.2) {
+            this.setState({
+                xLabel: 'PRICE: ' + mockCoinList[Math.floor(Math.random() * mockCoinList.length)],
+                yLabel: 'USD 1000'
+            });
+        } else if (mode < 0.6) {
+            this.setState({
+                xLabel: 'SALES: ' + mockProductList[Math.floor(Math.random() * mockProductList.length)],
+                yLabel: 'UNITS'
+            });
+        } else {
+            this.setState({
+                xLabel: 'STOCK: ' + mockIndustryList[Math.floor(Math.random() * mockIndustryList.length)],
+                yLabel: 'TRADES'
+            });
+        }
+
+        this.setState({
+            version: this.state.version + 1
+        });
     }
 
     render() {
@@ -43,9 +139,7 @@ class DemoStage extends React.PureComponent {
                     cursor: 'pointer'
                 }}
                 onClick={() => {
-                    this.setState({
-                        version: this.state.version + 1
-                    });
+                    this._resetChart();
 
                     boopSound.play();
                 }}
@@ -55,8 +149,8 @@ class DemoStage extends React.PureComponent {
                 key={this.state.version}
                 width={640}
                 height={480}
-                xLabel={'CHART X-AXIS'}
-                yLabel={'Y-AXIS'}
+                xLabel={this.state.xLabel}
+                yLabel={this.state.yLabel}
                 baseColor={palette[3]}
                 secondaryColor={palette[4]}
                 highlightColor={palette[2]}
