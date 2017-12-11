@@ -255,6 +255,12 @@ class Chart extends React.PureComponent {
         this.setState({ graphicsInitialized: true });
     }
 
+    componentWillUnmount() {
+        // help WebGL context get cleaned up
+        this._regl.destroy();
+        this._regl = null; // dereference just in case
+    }
+
     // eslint-disable-next-line max-statements
     render() {
         const baseColor = hex2vector(this.props.baseColor);
