@@ -175,24 +175,39 @@ class DemoStage extends React.PureComponent {
                 labelColor={this.state.palette[1]}
             />
 
-            <a
-                href="https://twitter.com/unframework"
+            <div
                 style={{
-                    display: 'block',
-                    margin: '20px auto 0',
-                    border: '0',
-                    textAlign: 'right',
-                    padding: '5px',
-                    color: '#fff',
-                    textShadow: '0 1px 15px rgba(0, 0, 0, 0.5)',
-                    opacity: 0.4,
+                    display: 'flex',
+                    margin: '40px 0 0',
+                    justifyContent: 'space-between',
                     fontFamily: 'Courier New, mono',
-                    fontSize: '18px',
-                    letterSpacing: '-2px',
-                    outline: 'none', // @todo this breaks accessibility
-                    textDecoration: 'none'
+                    fontSize: '16px',
+                    letterSpacing: '-2px'
                 }}
-            >(by Nick Matantsev)</a>
+            >
+                <a
+                    href="https://github.com/beamworks/chartgl"
+                    style={{
+                        padding: '0 5px',
+                        color: '#fff',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        opacity: 0.3,
+                        outline: 'none', // @todo this breaks accessibility
+                        textDecoration: 'none'
+                    }}
+                >ChartGL: an experiment in React + WebGL + CSS3D</a>
+                <a
+                    href="https://twitter.com/unframework"
+                    style={{
+                        padding: '0 5px',
+                        color: '#fff',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        opacity: 0.3,
+                        outline: 'none', // @todo this breaks accessibility
+                        textDecoration: 'none'
+                    }}
+                >(by Nick Matantsev)</a>
+            </div>
         </div>;
     }
 }
