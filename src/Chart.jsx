@@ -151,11 +151,11 @@ class Chart extends React.PureComponent {
                     }
 
                     if (patternIndex == 1) {
-                        return stripe2Pattern();
+                        return checkerPattern();
                     }
 
                     if (patternIndex == 2) {
-                        return checkerPattern();
+                        return stripe2Pattern();
                     }
 
                     if (patternIndex == 3) {
