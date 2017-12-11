@@ -35,7 +35,7 @@ class Chart extends React.PureComponent {
 
         this.state.series.forEach((value, index) => {
             this._motionDefaultStyle[index] = 0;
-            this._motionStyle[index] = spring(value, { stiffness: 220, damping: 15 });
+            this._motionStyle[index] = spring(value, { stiffness: 320, damping: 12 });
         });
 
         this._regl = null; // initialized after first render
