@@ -2,6 +2,8 @@
 
 A chart experiment in React + WebGL + CSS3D. [See online demo](https://chartgl.zone) (https://chartgl.zone).
 
+[![](preview.png)](https://chartgl.zone)
+
 ## Thanks
 
 - ReGL (WebGL helper): http://regl.party/
