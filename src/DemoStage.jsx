@@ -146,7 +146,7 @@ class DemoStage extends React.PureComponent {
 
                     boopSound.play();
                 }}
-            >Reset</button>
+            >Generate</button>
 
             <Chart
                 key={this.state.version}
