@@ -11,4 +11,5 @@ A chart experiment in React + WebGL + CSS3D. [See online demo](https://chartgl.z
 - React Motion (animation): https://github.com/chenglou/react-motion
 - Howler (sound): https://howlerjs.com/
 - Leshy SFMaker (sfx): https://www.leshylabs.com/apps/sfMaker/
+- Mockaroo (chart labels): http://www.mockaroo.com/
 - [Surge](https://surge.sh/) (hosting)
