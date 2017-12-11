@@ -359,7 +359,7 @@ class Chart extends React.PureComponent {
                     lineHeight: 1,
                     letterSpacing: '-2px',
                     color: labelColorCss
-                }, 'Z-AXIS')}
+                }, 'Y-AXIS')}
             </div>
         </div>}</Motion>;
     }
