@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "webpack-dev-server",
     "build": "webpack",
-    "deploy": "npm run build && surge -p dist -d chartgl.zone"
+    "deploy": "npm run build && cp preview.png dist && surge -p dist -d chartgl.zone"
   },
   "author": "Nick Matantsev <nick.matantsev@beamworks.io>",
   "license": "ISC",
