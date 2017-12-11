@@ -11,7 +11,16 @@ module.exports = {
     },
     module: {
         rules: [
-            { test: /\.(jsx?)$/, use: 'babel-loader', exclude: /node_modules/ }
+            { test: /\.(jsx?)$/, use: 'babel-loader', exclude: /node_modules/ },
+            {
+                test: /\.wav$/,
+                use: [ {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 40000
+                    }
+                } ]
+            }
         ]
     },
     plugins: [

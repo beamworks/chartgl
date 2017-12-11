@@ -2,8 +2,13 @@ import colorPalettes from 'nice-color-palettes';
 import React from 'react';
 
 import Chart from './Chart.jsx';
+import boopUrl from './boop.wav';
 
 const palette = colorPalettes[1];
+
+const boopSound = new Howl({
+    src: [ boopUrl ]
+});
 
 class DemoStage extends React.PureComponent {
     constructor() {
@@ -41,6 +46,8 @@ class DemoStage extends React.PureComponent {
                     this.setState({
                         version: this.state.version + 1
                     });
+
+                    boopSound.play();
                 }}
             >Reset</button>
 
