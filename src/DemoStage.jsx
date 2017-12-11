@@ -159,6 +159,25 @@ class DemoStage extends React.PureComponent {
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
             />
+
+            <a
+                href="https://twitter.com/unframework"
+                style={{
+                    display: 'block',
+                    margin: '20px auto 0',
+                    border: '0',
+                    textAlign: 'right',
+                    padding: '5px',
+                    color: '#fff',
+                    textShadow: '0 1px 15px rgba(0, 0, 0, 0.5)',
+                    opacity: 0.4,
+                    fontFamily: 'Courier New, mono',
+                    fontSize: '18px',
+                    letterSpacing: '-2px',
+                    outline: 'none', // @todo this breaks accessibility
+                    textDecoration: 'none'
+                }}
+            >(by Nick Matantsev)</a>
         </div>;
     }
 }
