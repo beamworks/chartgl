@@ -108,8 +108,13 @@ class DemoStage extends React.PureComponent {
             });
         }
 
+        // start with default palette at first, then randomize
+        const paletteIndex = this.state.version > 2
+            ? Math.floor(Math.random() * colorPalettes.length)
+            : 1;
+
         this.setState({
-            palette: colorPalettes[Math.floor(Math.random() * colorPalettes.length)],
+            palette: colorPalettes[paletteIndex],
             version: this.state.version + 1
         });
     }
