@@ -349,7 +349,7 @@ class Chart extends React.PureComponent {
                     lineHeight: 1,
                     letterSpacing: '-2px',
                     color: labelColorCss
-                }, 'CHART X-AXIS')}
+                }, this.props.xLabel)}
 
                 {renderOverlaySpan(`translate(${-startX + 60}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
                     whiteSpace: 'nowrap',
@@ -359,7 +359,7 @@ class Chart extends React.PureComponent {
                     lineHeight: 1,
                     letterSpacing: '-2px',
                     color: labelColorCss
-                }, 'Y-AXIS')}
+                }, this.props.yLabel)}
             </div>
         </div>}</Motion>;
     }

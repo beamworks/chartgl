@@ -55,6 +55,8 @@ class DemoStage extends React.PureComponent {
                 key={this.state.version}
                 width={640}
                 height={480}
+                xLabel={'CHART X-AXIS'}
+                yLabel={'Y-AXIS'}
                 baseColor={palette[3]}
                 secondaryColor={palette[4]}
                 highlightColor={palette[2]}
