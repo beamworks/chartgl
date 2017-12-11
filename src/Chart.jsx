@@ -348,6 +348,7 @@ class Chart extends React.PureComponent {
                     fontSize: '40px',
                     lineHeight: 1,
                     letterSpacing: '-2px',
+                    textShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
                     color: labelColorCss
                 }, this.props.xLabel)}
 
@@ -358,6 +359,7 @@ class Chart extends React.PureComponent {
                     fontSize: '48px',
                     lineHeight: 1,
                     letterSpacing: '-2px',
+                    textShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
                     color: labelColorCss
                 }, this.props.yLabel)}
             </div>

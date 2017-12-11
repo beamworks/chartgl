@@ -4,8 +4,6 @@ import React from 'react';
 import Chart from './Chart.jsx';
 import boopUrl from './boop.wav';
 
-const palette = colorPalettes[1];
-
 const boopSound = new Howl({
     src: [ boopUrl ]
 });
@@ -111,12 +109,13 @@ class DemoStage extends React.PureComponent {
         }
 
         this.setState({
+            palette: colorPalettes[Math.floor(Math.random() * colorPalettes.length)],
             version: this.state.version + 1
         });
     }
 
     render() {
-        document.body.style.background = palette[0];
+        document.body.style.background = this.state.palette[0];
 
         return <div style={{
             display: 'inline-block'
@@ -133,6 +132,7 @@ class DemoStage extends React.PureComponent {
                     borderRadius: '3px',
                     background: 'rgba(255, 255, 255, 0.3)',
                     color: '#fff',
+                    textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
                     fontFamily: 'Michroma, Arial, sans-serif',
                     fontSize: '24px',
                     outline: 'none', // @todo this breaks accessibility
@@ -151,10 +151,10 @@ class DemoStage extends React.PureComponent {
                 height={480}
                 xLabel={this.state.xLabel}
                 yLabel={this.state.yLabel}
-                baseColor={palette[3]}
-                secondaryColor={palette[4]}
-                highlightColor={palette[2]}
-                labelColor={palette[1]}
+                baseColor={this.state.palette[3]}
+                secondaryColor={this.state.palette[4]}
+                highlightColor={this.state.palette[2]}
+                labelColor={this.state.palette[1]}
             />
         </div>;
     }
