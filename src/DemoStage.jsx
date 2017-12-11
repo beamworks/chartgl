@@ -1,5 +1,6 @@
 import colorPalettes from 'nice-color-palettes';
 import React from 'react';
+import { Motion, spring } from 'react-motion';
 
 import Chart from './Chart.jsx';
 import boopUrl from './boop.wav';
@@ -78,6 +79,7 @@ class DemoStage extends React.PureComponent {
         super();
 
         this.state = {
+            resetButtonZoom: 100,
             version: 0
         };
     }
@@ -123,7 +125,12 @@ class DemoStage extends React.PureComponent {
         return <div style={{
             display: 'inline-block'
         }}>
-            <button
+            <Motion
+                defaultStyle={{ zoom: 100 }}
+                style={{
+                    zoom: spring(this.state.resetButtonZoom, { stiffness: 800, damping: 15 })
+                }}
+            >{({ zoom }) => <button
                 type="button"
                 style={{
                     display: 'block',
@@ -138,15 +145,23 @@ class DemoStage extends React.PureComponent {
                     textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
                     fontFamily: 'Michroma, Arial, sans-serif',
                     fontSize: '24px',
+                    transform: `scale(${(100 - 0.5 * (zoom - 100)) / 100}, ${zoom / 100})`,
                     outline: 'none', // @todo this breaks accessibility
                     cursor: 'pointer'
                 }}
                 onClick={() => {
                     this._resetChart();
 
+                    // enlarge and then reset back to normal
+                    this.setState({ resetButtonZoom: 120 });
+
+                    setTimeout(() => {
+                        this.setState({ resetButtonZoom: 100 });
+                    }, 100);
+
                     boopSound.play();
                 }}
-            >Generate</button>
+            >Generate</button>}</Motion>
 
             <Chart
                 key={this.state.version}
