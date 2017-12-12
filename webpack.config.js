@@ -20,6 +20,12 @@ module.exports = {
                         limit: 40000
                     }
                 } ]
+            },
+
+            // ES6-based lib
+            {
+              test: /node_modules[\\\/]gl-matrix[\\\/].*\.js$/,
+              loader: 'babel-loader' // built-in babelrc
             }
         ]
     },
@@ -35,7 +41,12 @@ module.exports = {
             filename: 'index.html',
             template: './index.html'
         })
-    ],
+    ].concat(process.env.NODE_ENV === 'production' ? [
+        // uglify in prod
+        new webpack.optimize.UglifyJsPlugin({
+            output: { 'ascii_only': true } // conservative encoding
+        })
+    ] : []),
 
     // serve index.html in place of browser's 404 responses
     devServer: {
