@@ -22,8 +22,11 @@ class Chart extends React.PureComponent {
     }) {
         super();
 
+        const mockData = Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random());
+
         this.state = {
-            series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
+            series: mockData,
+            barStatus: mockData.map(() => false),
             graphicsInitialized: false
         };
 
@@ -262,6 +265,15 @@ class Chart extends React.PureComponent {
         this.setState({ graphicsInitialized: true });
     }
 
+    _setBarIsActive(barIndex, status) {
+        this.setState(state => {
+            const newStatusList = state.barStatus.slice();
+            newStatusList[barIndex] = status;
+
+            return { barStatus: newStatusList };
+        })
+    }
+
     componentWillUnmount() {
         // help WebGL context get cleaned up
         this._regl.destroy();
@@ -338,7 +350,7 @@ class Chart extends React.PureComponent {
                     this._barCommand({
                         camera: this._cameraMat4,
                         base: this._barBaseVec2,
-                        radius: barRadius,
+                        radius: (this.state.barStatus[index] ? 5 : 0) + barRadius,
                         height: this._chartAreaH * motionValue,
                         patternIndex: index % 4,
                         patternSize: this._patternSize,
@@ -383,6 +395,19 @@ class Chart extends React.PureComponent {
                     letterSpacing: '-2px',
                     color: labelColorCss
                 }, this.props.yLabel)}
+
+                {renderOverlaySpan(`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`, {
+                    display: 'flex',
+                    width: this._chartAreaW + 'px',
+                    height: this._chartAreaH + 'px'
+                }, this.state.series.map((value, index) => <span key={index} style={{
+                    display: 'block',
+                    flex: '1'
+                }} onMouseEnter={() => {
+                    this._setBarIsActive(index, true);
+                }} onMouseLeave={() => {
+                    this._setBarIsActive(index, false);
+                }} />))}
             </div>
         </div>;
     }
