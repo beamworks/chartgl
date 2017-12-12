@@ -42,8 +42,11 @@ class Chart extends React.PureComponent {
         this._motionStyle = {};
 
         this.state.series.forEach((value, index) => {
-            this._motionDefaultStyle[index] = 0;
-            this._motionStyle[index] = spring(value, { stiffness: 320, damping: 12 });
+            this._motionDefaultStyle[`v${index}`] = 0;
+            this._motionStyle[`v${index}`] = spring(value, { stiffness: 320, damping: 12 });
+
+            this._motionDefaultStyle[`r${index}`] = 0;
+            this._motionStyle[`r${index}`] = spring(0, { stiffness: 320, damping: 12 });
         });
 
         this._regl = null; // initialized after first render
@@ -266,6 +269,13 @@ class Chart extends React.PureComponent {
     }
 
     _setBarIsActive(barIndex, status) {
+        // when hovered, animate added amount to the bar radius
+        this._motionStyle[`r${barIndex}`] = spring(
+            status ? this._barSpacing / 2 : 0,
+            { stiffness: 320, damping: 12 }
+        );
+
+        // trigger a refresh
         this.setState(state => {
             const newStatusList = state.barStatus.slice();
             newStatusList[barIndex] = status;
@@ -343,14 +353,15 @@ class Chart extends React.PureComponent {
 
                 // chart bar display
                 this.state.series.forEach((value, index) => {
-                    const motionValue = motion[index];
+                    const motionValue = motion[`v${index}`];
+                    const motionExtraRadius = motion[`r${index}`];
 
                     vec2.set(this._barBaseVec2, (index * barCellSize) + startX, barRadius - 40);
 
                     this._barCommand({
                         camera: this._cameraMat4,
                         base: this._barBaseVec2,
-                        radius: (this.state.barStatus[index] ? 5 : 0) + barRadius,
+                        radius: barRadius + motionExtraRadius,
                         height: this._chartAreaH * motionValue,
                         patternIndex: index % 4,
                         patternSize: this._patternSize,
