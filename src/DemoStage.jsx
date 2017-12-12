@@ -134,7 +134,7 @@ class DemoStage extends React.PureComponent {
                 type="button"
                 style={{
                     display: 'block',
-                    margin: '0 auto 60px',
+                    margin: '0 auto 30px',
                     width: '200px',
                     height: '60px',
                     border: '0',
@@ -178,7 +178,7 @@ class DemoStage extends React.PureComponent {
             <div
                 style={{
                     display: 'flex',
-                    margin: '40px 0 0',
+                    margin: '60px 0 0',
                     justifyContent: 'space-between',
                     fontFamily: 'Courier New, mono',
                     fontSize: '16px',

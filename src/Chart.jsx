@@ -277,16 +277,16 @@ class Chart extends React.PureComponent {
 
         mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, this._chartAreaW * 10);
 
-        // camera position
+        // camera distance
         vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH * 4);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // camera orbit pitch and yaw
-        mat4.rotateX(this._cameraMat4, this._cameraMat4, -0.9);
+        mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.0);
         mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
         // camera offset
-        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH / 3);
+        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH / 2);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // chart 3D layout
