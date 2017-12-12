@@ -46,17 +46,6 @@ class Chart extends React.PureComponent {
         this._barExtraRadius = this._barSpacing * 0.3;
         this._patternSize = 50;
 
-        this._motionDefaultStyle = {};
-        this._motionStyle = {};
-
-        this.state.series.forEach((value, index) => {
-            this._motionDefaultStyle[`v${index}`] = 0;
-            this._motionStyle[`v${index}`] = spring(value, { stiffness: 320, damping: 12 });
-
-            this._motionDefaultStyle[`r${index}`] = 0;
-            this._motionStyle[`r${index}`] = spring(0, { stiffness: 600, damping: 18 });
-        });
-
         this._regl = null; // initialized after first render
 
         // reusable computation elements
@@ -281,13 +270,7 @@ class Chart extends React.PureComponent {
     }
 
     _setBarIsActive(barIndex, status) {
-        // when hovered, animate added amount to the bar radius
-        this._motionStyle[`r${barIndex}`] = spring(
-            status ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
-            { stiffness: 600, damping: 18 }
-        );
-
-        // trigger a refresh
+        // reduce bar status state into new instance
         this.setState(state => {
             const newStatusList = state.barStatus.slice();
             newStatusList[barIndex] = status;
@@ -328,6 +311,22 @@ class Chart extends React.PureComponent {
         const barRadius = Math.max(this._barSpacing / 2, barCellSize / 2 - this._barSpacing); // padding of 10px
         const startX = -barCellSize * (this.state.series.length - 1) / 2;
 
+        // animation setup (as single instance to help render scene in one shot)
+        const motionDefaultStyle = {};
+        const motionStyle = {};
+
+        this.state.series.forEach((value, index) => {
+            motionDefaultStyle[`v${index}`] = 0;
+            motionStyle[`v${index}`] = spring(value, { stiffness: 320, damping: 12 });
+
+            motionDefaultStyle[`r${index}`] = 0;
+            motionStyle[`r${index}`] = spring(
+                this.state.barStatus[index] ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
+                { stiffness: 600, damping: 18 }
+            );
+        });
+
+        // CSS 3D helper
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
         function renderOverlaySpan(modelTransform, style, content) {
@@ -356,8 +355,8 @@ class Chart extends React.PureComponent {
             }}
         >
             <Motion
-                defaultStyle={this._motionDefaultStyle}
-                style={this._motionStyle}
+                defaultStyle={motionDefaultStyle}
+                style={motionStyle}
             >{motion => {
                 if (!this._regl) {
                     return null;
