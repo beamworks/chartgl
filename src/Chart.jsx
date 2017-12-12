@@ -43,6 +43,7 @@ class Chart extends React.PureComponent {
         this._chartAreaW = 500;
         this._chartAreaH = 300;
         this._barSpacing = 10;
+        this._barExtraRadius = this._barSpacing * 0.3;
         this._patternSize = 50;
 
         this._motionDefaultStyle = {};
@@ -111,6 +112,7 @@ class Chart extends React.PureComponent {
 
                 uniform vec3 baseColor, secondaryColor, highlightColor;
                 uniform float height;
+                uniform float highlight;
                 uniform int patternIndex;
                 uniform float patternSize;
 
@@ -190,7 +192,9 @@ class Chart extends React.PureComponent {
                     vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                     float light = max(0.0, dot(fragNormal, lightDir));
 
-                    gl_FragColor = vec4(mix(pigmentColor, highlightColor, light), 1.0);
+                    float highlightMix = max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
+
+                    gl_FragColor = vec4(mix(pigmentColor, highlightColor, highlightMix + (1.0 - highlightMix) * light), 1.0);
                 }
             `,
 
@@ -257,6 +261,7 @@ class Chart extends React.PureComponent {
                 base: this._regl.prop('base'),
                 radius: this._regl.prop('radius'),
                 height: this._regl.prop('height'),
+                highlight: this._regl.prop('highlight'),
                 patternIndex: this._regl.prop('patternIndex'),
                 patternSize: this._regl.prop('patternSize'),
                 baseColor: this._regl.prop('baseColor'),
@@ -278,7 +283,7 @@ class Chart extends React.PureComponent {
     _setBarIsActive(barIndex, status) {
         // when hovered, animate added amount to the bar radius
         this._motionStyle[`r${barIndex}`] = spring(
-            status ? this._barSpacing * 0.3 : 0,
+            status ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
             { stiffness: 600, damping: 18 }
         );
 
@@ -370,6 +375,7 @@ class Chart extends React.PureComponent {
                         base: this._barBaseVec2,
                         radius: barRadius + motionExtraRadius,
                         height: this._chartAreaH * motionValue,
+                        highlight: motionExtraRadius / this._barExtraRadius,
                         patternIndex: index % 4,
                         patternSize: this._patternSize,
                         baseColor: baseColor,
