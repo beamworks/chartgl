@@ -30,6 +30,11 @@ class Chart extends React.PureComponent {
         this._width = width;
         this._height = height;
 
+        this._chartAreaW = 500;
+        this._chartAreaH = 300;
+        this._barSpacing = 10;
+        this._patternSize = 50;
+
         this._motionDefaultStyle = {};
         this._motionStyle = {};
 
@@ -94,29 +99,30 @@ class Chart extends React.PureComponent {
                 uniform vec3 baseColor, secondaryColor, highlightColor;
                 uniform float height;
                 uniform int patternIndex;
+                uniform float patternSize;
 
                 varying vec3 fragPosition;
                 varying vec3 fragNormal;
 
                 float stripePattern() {
-                    return step(25.0, mod((
+                    return step(patternSize * 0.5, mod((
                         fragPosition.y
                         - fragPosition.x
                         + (height - fragPosition.z)
-                    ), 50.0));
+                    ), patternSize));
                 }
 
                 float stripe2Pattern() {
-                    return step(25.0, mod((
+                    return step(patternSize * 0.5, mod((
                         fragPosition.x
                         - fragPosition.y
                         + (height - fragPosition.z)
-                    ), 50.0));
+                    ), patternSize));
                 }
 
                 float checkerPattern() {
                     vec3 cellPosition = vec3(0, 0, height) - fragPosition;
-                    float cellSize = 20.0;
+                    float cellSize = patternSize * 0.4;
 
                     vec3 cellIndex = cellPosition / cellSize;
                     float dotChoice = mod((
@@ -131,7 +137,7 @@ class Chart extends React.PureComponent {
                 float dotPattern() {
                     vec3 attachedPos = vec3(0, 0, height) - fragPosition;
 
-                    float dotSize = 15.0;
+                    float dotSize = patternSize * 0.3;
                     vec3 dotPosition = attachedPos + dotSize * 0.5;
                     float dotDistance = length(mod(dotPosition, dotSize) / dotSize - vec3(0.5));
 
@@ -239,6 +245,7 @@ class Chart extends React.PureComponent {
                 radius: this._regl.prop('radius'),
                 height: this._regl.prop('height'),
                 patternIndex: this._regl.prop('patternIndex'),
+                patternSize: this._regl.prop('patternSize'),
                 baseColor: this._regl.prop('baseColor'),
                 secondaryColor: this._regl.prop('secondaryColor'),
                 highlightColor: this._regl.prop('highlightColor')
@@ -268,10 +275,10 @@ class Chart extends React.PureComponent {
         const highlightColor = hex2vector(this.props.highlightColor);
         const labelColorCss = this.props.labelColor;
 
-        mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, 5000);
+        mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, this._chartAreaW * 10);
 
         // camera position
-        vec3.set(this._cameraPositionVec3, 0, 0, -1200);
+        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH * 4);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // camera orbit pitch and yaw
@@ -279,12 +286,12 @@ class Chart extends React.PureComponent {
         mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
 
         // camera offset
-        vec3.set(this._cameraPositionVec3, 0, 0, -100);
+        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH / 3);
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // chart 3D layout
-        const barCellSize = 500 / this.state.series.length;
-        const barRadius = Math.max(5, barCellSize / 2 - 10); // padding of 10px
+        const barCellSize = this._chartAreaW / this.state.series.length;
+        const barRadius = Math.max(this._barSpacing / 2, barCellSize / 2 - this._barSpacing); // padding of 10px
         const startX = -barCellSize * (this.state.series.length - 1) / 2;
 
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
@@ -328,8 +335,9 @@ class Chart extends React.PureComponent {
                         camera: this._cameraMat4,
                         base: this._barBaseVec2,
                         radius: barRadius,
-                        height: 300 * motionValue,
+                        height: this._chartAreaH * motionValue,
                         patternIndex: index % 4,
+                        patternSize: this._patternSize,
                         baseColor: baseColor,
                         secondaryColor: secondaryColor,
                         highlightColor: highlightColor
@@ -349,7 +357,7 @@ class Chart extends React.PureComponent {
                 transformStyle: 'preserve-3d',
                 transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
             }}>
-                {renderOverlaySpan(`translate(${-240}px, -60px)`, {
+                {renderOverlaySpan(`translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -359,7 +367,7 @@ class Chart extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.xLabel)}
 
-                {renderOverlaySpan(`translate(${260}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                {renderOverlaySpan(`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
