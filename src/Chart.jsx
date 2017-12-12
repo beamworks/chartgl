@@ -46,7 +46,7 @@ class Chart extends React.PureComponent {
             this._motionStyle[`v${index}`] = spring(value, { stiffness: 320, damping: 12 });
 
             this._motionDefaultStyle[`r${index}`] = 0;
-            this._motionStyle[`r${index}`] = spring(0, { stiffness: 320, damping: 12 });
+            this._motionStyle[`r${index}`] = spring(0, { stiffness: 600, damping: 18 });
         });
 
         this._regl = null; // initialized after first render
@@ -271,8 +271,8 @@ class Chart extends React.PureComponent {
     _setBarIsActive(barIndex, status) {
         // when hovered, animate added amount to the bar radius
         this._motionStyle[`r${barIndex}`] = spring(
-            status ? this._barSpacing / 2 : 0,
-            { stiffness: 320, damping: 12 }
+            status ? this._barSpacing * 0.3 : 0,
+            { stiffness: 600, damping: 18 }
         );
 
         // trigger a refresh
