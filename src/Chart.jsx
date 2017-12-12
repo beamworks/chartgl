@@ -4,6 +4,13 @@ import reglInit from 'regl';
 import onecolor from 'onecolor';
 import { mat4, vec2, vec3 } from 'gl-matrix';
 
+import bumpUrl from './bump.wav';
+
+const bumpSound = new Howl({
+    src: [ bumpUrl ],
+    volume: 0.5
+});
+
 function hex2vector(cssHex) {
     const pc = onecolor(cssHex);
 
@@ -416,6 +423,8 @@ class Chart extends React.PureComponent {
                     flex: '1'
                 }} onMouseEnter={() => {
                     this._setBarIsActive(index, true);
+
+                    bumpSound.play();
                 }} onMouseLeave={() => {
                     this._setBarIsActive(index, false);
                 }} />))}
