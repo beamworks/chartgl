@@ -311,10 +311,7 @@ class Chart extends React.PureComponent {
             }}>{content}</span>;
         }
 
-        return <Motion
-            defaultStyle={this._motionDefaultStyle}
-            style={this._motionStyle}
-        >{motion => <div
+        return <div
             ref={this._handleNodeRef}
             style={{
                 position: 'relative',
@@ -324,7 +321,14 @@ class Chart extends React.PureComponent {
                 overflow: 'hidden' // clip contents
             }}
         >
-            {this._regl ? (
+            <Motion
+                defaultStyle={this._motionDefaultStyle}
+                style={this._motionStyle}
+            >{motion => {
+                if (!this._regl) {
+                    return null;
+                }
+
                 // chart bar display
                 this.state.series.forEach((value, index) => {
                     const motionValue = motion[index];
@@ -342,8 +346,11 @@ class Chart extends React.PureComponent {
                         secondaryColor: secondaryColor,
                         highlightColor: highlightColor
                     });
-                }) || null
-            ) : null}
+                });
+
+                // no element actually displayed
+                return null;
+            }}</Motion>
 
             <div style={{
                 position: 'absolute',
@@ -377,7 +384,7 @@ class Chart extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.yLabel)}
             </div>
-        </div>}</Motion>;
+        </div>;
     }
 }
 
