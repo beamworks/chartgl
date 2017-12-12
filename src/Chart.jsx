@@ -23,7 +23,7 @@ class Chart extends React.PureComponent {
         super();
 
         this.state = {
-            series: Array(...new Array(5)).map(() => Math.random()),
+            series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
             graphicsInitialized: false
         };
 
@@ -283,7 +283,9 @@ class Chart extends React.PureComponent {
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // chart 3D layout
-        const startX = -100 * (this.state.series.length - 1) / 2;
+        const barCellSize = 500 / this.state.series.length;
+        const barRadius = Math.max(5, barCellSize / 2 - 10); // padding of 10px
+        const startX = -barCellSize * (this.state.series.length - 1) / 2;
 
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
@@ -320,12 +322,12 @@ class Chart extends React.PureComponent {
                 this.state.series.forEach((value, index) => {
                     const motionValue = motion[index];
 
-                    vec2.set(this._barBaseVec2, (index * 100) + startX, 0);
+                    vec2.set(this._barBaseVec2, (index * barCellSize) + startX, barRadius - 40);
 
                     this._barCommand({
                         camera: this._cameraMat4,
                         base: this._barBaseVec2,
-                        radius: 40,
+                        radius: barRadius,
                         height: 300 * motionValue,
                         patternIndex: index % 4,
                         baseColor: baseColor,
@@ -347,7 +349,7 @@ class Chart extends React.PureComponent {
                 transformStyle: 'preserve-3d',
                 transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
             }}>
-                {renderOverlaySpan(`translate(${startX - 40}px, -60px)`, {
+                {renderOverlaySpan(`translate(${-240}px, -60px)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -357,7 +359,7 @@ class Chart extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.xLabel)}
 
-                {renderOverlaySpan(`translate(${-startX + 60}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                {renderOverlaySpan(`translate(${260}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
