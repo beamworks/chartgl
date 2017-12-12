@@ -192,7 +192,7 @@ class Chart extends React.PureComponent {
                     vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                     float light = max(0.0, dot(fragNormal, lightDir));
 
-                    float highlightMix = max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
+                    float highlightMix = 1.75 * max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
 
                     gl_FragColor = vec4(mix(pigmentColor, highlightColor, highlightMix + (1.0 - highlightMix) * light), 1.0);
                 }
