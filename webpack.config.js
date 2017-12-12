@@ -24,6 +24,12 @@ module.exports = {
         ]
     },
     plugins: [
+        // @todo uglify in prod
+        // pass Node production flag to React safety checks
+        new webpack.EnvironmentPlugin({
+            'NODE_ENV': 'development'
+        }),
+
         new HtmlWebpackPlugin({
             chunks: [ 'demo' ],
             filename: 'index.html',
