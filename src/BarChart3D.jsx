@@ -475,9 +475,15 @@ class BarChart3D extends React.PureComponent {
 
             {this.props.children(this._barComponentClass)}
 
-            {barIdList.map(barId => this._barMap[barId].props.children(
-                this.state.barIsActive[barId]
-            ))}
+            {barIdList.map(barId => {
+                const barContent = this._barMap[barId].props.children(
+                    this.state.barIsActive[barId]
+                );
+
+                return barContent && React.cloneElement(barContent, {
+                    key: barId
+                });
+            })}
         </div>;
     }
 }
