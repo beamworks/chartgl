@@ -79,6 +79,7 @@ class DemoStage extends React.PureComponent {
         super();
 
         this.state = {
+            series: [],
             resetButtonZoom: 100,
             version: 0
         };
@@ -114,6 +115,7 @@ class DemoStage extends React.PureComponent {
             : 1;
 
         this.setState({
+            series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
             palette: colorPalettes[paletteIndex],
             version: this.state.version + 1
         });
@@ -173,7 +175,9 @@ class DemoStage extends React.PureComponent {
                 secondaryColor={this.state.palette[4]}
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
-            />
+            >{Bar => this.state.series.map((value, index) =>
+                <Bar key={index} value={value} />
+            )}</BarChart3D>
 
             <div
                 style={{
