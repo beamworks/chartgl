@@ -21,7 +21,7 @@ function hex2vector(cssHex) {
     );
 }
 
-class Chart extends React.PureComponent {
+class BarChart3D extends React.PureComponent {
     constructor({
         width,
         height,
@@ -398,4 +398,4 @@ class Chart extends React.PureComponent {
     }
 }
 
-export default Chart;
+export default BarChart3D;

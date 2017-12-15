@@ -2,7 +2,7 @@ import colorPalettes from 'nice-color-palettes';
 import React from 'react';
 import { Motion, spring } from 'react-motion';
 
-import Chart from './Chart.jsx';
+import BarChart3D from './BarChart3D.jsx';
 import boopUrl from './boop.wav';
 
 const boopSound = new Howl({
@@ -163,7 +163,7 @@ class DemoStage extends React.PureComponent {
                 }}
             >Generate</button>}</Motion>
 
-            <Chart
+            <BarChart3D
                 key={this.state.version}
                 width={640}
                 height={480}
