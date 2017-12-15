@@ -17,18 +17,20 @@ function hex2vector(cssHex) {
 function createBarComponentClass(parent) {
     return class ChartBar extends React.PureComponent {
         constructor({
+            index,
             value
         }) {
             super();
 
+            this._index = Math.floor(index) || 0; // coerce to a number
             this._value = Math.max(0, Math.min(1, value)) || 0; // coerce to 0..1
 
             this.state = {
                 isActive: false
             };
 
-            this._hoverBlock = <div
-                style={{ flex: '1' }}
+            this._hoverArea = <div
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 onMouseEnter={() => {
                     parent._setBarIsActive(this, true);
                 }}
@@ -60,6 +62,7 @@ function createBarComponentClass(parent) {
 
 class BarChart3D extends React.PureComponent {
     constructor({
+        barCount,
         width,
         height,
         palette
@@ -331,6 +334,15 @@ class BarChart3D extends React.PureComponent {
     // eslint-disable-next-line max-statements
     render() {
         const barIdList = Object.keys(this._barMap);
+        const barDisplayList = new Array(Math.floor(this.props.barCount) || 0);
+
+        barIdList.forEach(barId => {
+            const bar = this._barMap[barId];
+
+            if (bar) {
+                barDisplayList[bar._index] = barId;
+            }
+        });
 
         const baseColor = hex2vector(this.props.baseColor);
         const secondaryColor = hex2vector(this.props.secondaryColor);
@@ -352,9 +364,9 @@ class BarChart3D extends React.PureComponent {
         mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
 
         // chart 3D layout
-        const barCellSize = this._chartAreaW / barIdList.length;
+        const barCellSize = this._chartAreaW / barDisplayList.length;
         const barRadius = Math.max(this._barSpacing / 2, barCellSize / 2 - this._barSpacing); // padding of 10px
-        const startX = -barCellSize * (barIdList.length - 1) / 2;
+        const startX = -barCellSize * (barDisplayList.length - 1) / 2;
 
         // animation setup (as single instance to help render scene in one shot)
         const motionDefaultStyle = {};
@@ -377,8 +389,8 @@ class BarChart3D extends React.PureComponent {
         // CSS 3D helper
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
-        function renderOverlaySpan(modelTransform, style, content) {
-            return <span style={{
+        function renderOverlaySpan(modelTransform, style, content, key) {
+            return <span key={key} style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -413,7 +425,7 @@ class BarChart3D extends React.PureComponent {
                 }
 
                 // chart bar display
-                barIdList.forEach((barId, index) => {
+                barDisplayList.forEach((barId, index) => {
                     const motionValue = motion[`v${barId}`];
                     const motionExtraRadius = motion[`r${barId}`];
 
@@ -469,19 +481,20 @@ class BarChart3D extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.yLabel)}
 
-                {renderOverlaySpan(`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`, {
-                    display: 'flex',
-                    width: this._chartAreaW + 'px',
-                    height: this._chartAreaH + 'px'
-                }, barIdList.map(barId => React.cloneElement(
-                    this._barMap[barId]._hoverBlock,
-                    { key: barId }
-                )))}
+                {barDisplayList.map((barId, index) => renderOverlaySpan(
+                    `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
+                    {
+                        width: '100px', // non-fractional size for better precision via scaling
+                        height: this._chartAreaH + 'px'
+                    },
+                    this._barMap[barId]._hoverArea,
+                    barId
+                ))}
             </div>
 
             {this.props.children(this._barComponentClass)}
 
-            {barIdList.map(barId => {
+            {barDisplayList.map(barId => {
                 const barContent = this._barMap[barId].props.children(
                     this.state.barIsActive[barId]
                 );
