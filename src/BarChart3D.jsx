@@ -31,8 +31,14 @@ function createBarComponentClass(parent) {
                 style={{ flex: '1' }}
                 onMouseEnter={() => {
                     parent._setBarIsActive(this, true);
-                }} onMouseLeave={() => {
+                }}
+                onMouseLeave={() => {
                     parent._setBarIsActive(this, false);
+                }}
+                onClick={() => {
+                    if (this.props.onClick) {
+                        this.props.onClick();
+                    }
                 }}
             />;
         }

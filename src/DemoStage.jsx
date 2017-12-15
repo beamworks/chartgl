@@ -5,6 +5,7 @@ import { Motion, spring } from 'react-motion';
 import BarChart3D from './BarChart3D.jsx';
 import boopUrl from './boop.wav';
 import bumpUrl from './bump.wav';
+import chirpUrl from './chirp.wav';
 
 const boopSound = new Howl({
     src: [ boopUrl ]
@@ -12,6 +13,11 @@ const boopSound = new Howl({
 
 const bumpSound = new Howl({
     src: [ bumpUrl ],
+    volume: 0.5
+});
+
+const chirpSound = new Howl({
+    src: [ chirpUrl ],
     volume: 0.5
 });
 
@@ -193,7 +199,9 @@ class DemoStage extends React.PureComponent {
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
             >{Bar => this.state.series.map((value, index) =>
-                <Bar key={index} value={value}>{(isActive) =>
+                <Bar key={index} value={value} onClick={() => {
+                    chirpSound.play();
+                }}>{(isActive) =>
                     isActive ? <BumpSound /> : null
                 }</Bar>
             )}</BarChart3D>
