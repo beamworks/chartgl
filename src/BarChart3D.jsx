@@ -33,6 +33,17 @@ function createBarComponentClass(parent) {
             this.state = {
                 isActive: false
             };
+
+            this._hoverBlock = <div
+                style={{ flex: '1' }}
+                onMouseEnter={() => {
+                    parent._setBarIsActive(this, true);
+
+                    bumpSound.play();
+                }} onMouseLeave={() => {
+                    parent._setBarIsActive(this, false);
+                }}
+            />;
         }
 
         componentWillMount() {
@@ -463,16 +474,10 @@ class BarChart3D extends React.PureComponent {
                     display: 'flex',
                     width: this._chartAreaW + 'px',
                     height: this._chartAreaH + 'px'
-                }, barIdList.map(barId => <span key={barId} style={{
-                    display: 'block',
-                    flex: '1'
-                }} onMouseEnter={() => {
-                    this._setBarIsActive(this._barMap[barId], true);
-
-                    bumpSound.play();
-                }} onMouseLeave={() => {
-                    this._setBarIsActive(this._barMap[barId], false);
-                }} />))}
+                }, barIdList.map(barId => React.cloneElement(
+                    this._barMap[barId]._hoverBlock,
+                    { key: barId }
+                )))}
             </div>
 
             {this.props.children(this._barComponentClass)}
