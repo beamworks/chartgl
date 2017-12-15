@@ -4,13 +4,6 @@ import reglInit from 'regl';
 import onecolor from 'onecolor';
 import { mat4, vec2, vec3 } from 'gl-matrix';
 
-import bumpUrl from './bump.wav';
-
-const bumpSound = new Howl({
-    src: [ bumpUrl ],
-    volume: 0.5
-});
-
 function hex2vector(cssHex) {
     const pc = onecolor(cssHex);
 
@@ -38,8 +31,6 @@ function createBarComponentClass(parent) {
                 style={{ flex: '1' }}
                 onMouseEnter={() => {
                     parent._setBarIsActive(this, true);
-
-                    bumpSound.play();
                 }} onMouseLeave={() => {
                     parent._setBarIsActive(this, false);
                 }}
@@ -55,6 +46,7 @@ function createBarComponentClass(parent) {
         }
 
         render() {
+            // no DOM is produced directly
             return null;
         }
     }
@@ -364,13 +356,14 @@ class BarChart3D extends React.PureComponent {
 
         barIdList.forEach(barId => {
             const value = this._barMap[barId]._value;
+            const isActive = this.state.barIsActive[barId];
 
             motionDefaultStyle[`v${barId}`] = 0;
             motionStyle[`v${barId}`] = spring(value, { stiffness: 320, damping: 12 });
 
             motionDefaultStyle[`r${barId}`] = 0;
             motionStyle[`r${barId}`] = spring(
-                this.state.barIsActive[barId] ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
+                isActive ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
                 { stiffness: 600, damping: 18 }
             );
         });
@@ -481,6 +474,10 @@ class BarChart3D extends React.PureComponent {
             </div>
 
             {this.props.children(this._barComponentClass)}
+
+            {barIdList.map(barId => this._barMap[barId].props.children(
+                this.state.barIsActive[barId]
+            ))}
         </div>;
     }
 }

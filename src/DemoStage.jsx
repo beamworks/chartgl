@@ -4,9 +4,15 @@ import { Motion, spring } from 'react-motion';
 
 import BarChart3D from './BarChart3D.jsx';
 import boopUrl from './boop.wav';
+import bumpUrl from './bump.wav';
 
 const boopSound = new Howl({
     src: [ boopUrl ]
+});
+
+const bumpSound = new Howl({
+    src: [ bumpUrl ],
+    volume: 0.5
 });
 
 const mockCoinList = [
@@ -176,7 +182,12 @@ class DemoStage extends React.PureComponent {
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
             >{Bar => this.state.series.map((value, index) =>
-                <Bar key={index} value={value} />
+                <Bar key={index} value={value}>{(isActive) => {
+                    // @todo proper debounce
+                    if (isActive) {
+                        bumpSound.play();
+                    }
+                }}</Bar>
             )}</BarChart3D>
 
             <div
