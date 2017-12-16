@@ -16,69 +16,28 @@ function hex2vector(cssHex) {
     );
 }
 
-function createBarComponentClass(parent) {
-    return class ChartBar extends React.PureComponent {
-        constructor({
-            index,
-            value
-        }) {
-            super();
-
-            this._index = Math.floor(index) || 0; // coerce to a number
-            this._value = Math.max(0, Math.min(1, value)) || 0; // coerce to 0..1
-
-            this.state = {
-                isActive: false
-            };
-
-            this._hoverArea = <div
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                onMouseEnter={() => {
-                    parent._setBarIsActive(this, true);
-                }}
-                onMouseLeave={() => {
-                    parent._setBarIsActive(this, false);
-                }}
-                onClick={() => {
-                    if (this.props.onClick) {
-                        this.props.onClick();
-                    }
-                }}
-            />;
-        }
-
-        componentWillMount() {
-            parent._registerBar(this);
-        }
-
-        componentWillUnmount() {
-            parent._unregisterBar(this);
-        }
-
-        render() {
-            // no DOM is produced directly
-            return null;
-        }
-    }
-}
-
 class BarChart3D extends React.PureComponent {
     constructor({
-        barCount,
+        values,
         width,
         height,
         palette
     }) {
         super();
 
+        // copy value array and coerce to 0..1
+        this._values = [].concat(values).map(
+            value => Math.max(0, Math.min(1, value)) || 0
+        );
+
+        if (this._values.length < 1) {
+            throw new Error('missing values');
+        }
+
         this.state = {
-            barIsActive: {},
+            barIsActive: this._values.map(() => false),
             graphicsInitialized: false
         };
-
-        this._barMapVersion = 0; // track additions and deletions
-        this._barMap = Object.create(null);
-        this._barComponentClass = createBarComponentClass(this);
 
         this._width = width;
         this._height = height;
@@ -95,59 +54,15 @@ class BarChart3D extends React.PureComponent {
         this._barBaseVec2 = vec2.create();
     }
 
-    _registerBar(barNode) {
-        const matchingBarId = Object.keys(this._barMap).find(barId => this._barMap[barId] === barNode);
-
-        if (matchingBarId) {
-            throw new Error('already-attached bar node');
-        }
-
-        const newId = (this._barMapVersion += 1);
-        this._barMap[newId] = barNode;
-
-        // add status state to trigger re-render
-        this.setState(state => ({
-            barIsActive: {
-                ...state.barIsActive,
-                [newId]: false
-            }
-        }));
-    }
-
-    _setBarIsActive(barNode, status) {
-        const matchingBarId = Object.keys(this._barMap).find(barId => this._barMap[barId] === barNode);
-
-        if (!matchingBarId) {
-            throw new Error('non-attached bar node');
-        }
-
+    _setBarIsActive(index, status) {
         // reduce bar status state into new instance
         this.setState(state => ({
-            barIsActive: {
-                ...state.barIsActive,
-                [matchingBarId]: !!status
-            }
+            barIsActive: [].concat(
+                state.barIsActive.slice(0, index),
+                [ !!status ],
+                state.barIsActive.slice(index + 1)
+            )
         }));
-    }
-
-    _unregisterBar(barNode) {
-        const matchingBarId = Object.keys(this._barMap).find(barId => this._barMap[barId] === barNode);
-
-        if (!matchingBarId) {
-            throw new Error('non-attached bar node');
-        }
-
-        delete this._barMap[matchingBarId];
-
-        // remove status state to trigger re-render
-        this.setState(state => {
-            const newStatusMap = { ...state.barIsActive };
-            delete newStatusMap[matchingBarId];
-
-            return {
-                barIsActive: newStatusMap
-            };
-        });
     }
 
     _handleCanvasRef = (canvas) => {
@@ -329,40 +244,28 @@ class BarChart3D extends React.PureComponent {
 
     // eslint-disable-next-line max-statements
     render() {
-        const barIdList = Object.keys(this._barMap);
-        const barDisplayList = new Array(Math.floor(this.props.barCount) || 0);
-
-        barIdList.forEach(barId => {
-            const bar = this._barMap[barId];
-
-            if (bar) {
-                barDisplayList[bar._index] = barId;
-            }
-        });
-
         const baseColor = hex2vector(this.props.baseColor);
         const secondaryColor = hex2vector(this.props.secondaryColor);
         const highlightColor = hex2vector(this.props.highlightColor);
         const labelColorCss = this.props.labelColor;
 
         // chart 3D layout
-        const barCellSize = this._chartAreaW / barDisplayList.length;
+        const barCellSize = this._chartAreaW / this._values.length;
         const barRadius = Math.max(this._barSpacing / 2, barCellSize / 2 - this._barSpacing); // padding of 10px
-        const startX = -barCellSize * (barDisplayList.length - 1) / 2;
+        const startX = -barCellSize * (this._values.length - 1) / 2;
 
         // animation setup (as single instance to help render scene in one shot)
         const motionDefaultStyle = {};
         const motionStyle = {};
 
-        barIdList.forEach(barId => {
-            const value = this._barMap[barId]._value;
-            const isActive = this.state.barIsActive[barId];
+        this._values.forEach((value, index) => {
+            const isActive = this.state.barIsActive[index];
 
-            motionDefaultStyle[`v${barId}`] = 0;
-            motionStyle[`v${barId}`] = spring(value, { stiffness: 320, damping: 12 });
+            motionDefaultStyle[`v${index}`] = 0;
+            motionStyle[`v${index}`] = spring(value, { stiffness: 320, damping: 12 });
 
-            motionDefaultStyle[`r${barId}`] = 0;
-            motionStyle[`r${barId}`] = spring(
+            motionDefaultStyle[`r${index}`] = 0;
+            motionStyle[`r${index}`] = spring(
                 isActive ? this._barExtraRadius : 0, // @todo just animate in 0..1 range
                 { stiffness: 600, damping: 18 }
             );
@@ -378,15 +281,25 @@ class BarChart3D extends React.PureComponent {
             canvasRef={this._handleCanvasRef}
             content3d={{
                 [`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`]: (
-                    barDisplayList.map((barId, index) => <div key={barId} style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100px', // non-fractional size for better precision via scaling
-                        height: this._chartAreaH + 'px',
-                        transformOrigin: '0 0',
-                        transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
-                    }}>{this._barMap[barId]._hoverArea}</div>)
+                    this._values.map((value, index) => <div
+                        key={index}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100px', // non-fractional size for better precision via scaling
+                            height: this._chartAreaH + 'px',
+                            transformOrigin: '0 0',
+                            transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
+                        }}
+                        onMouseEnter={() => { this._setBarIsActive(index, true); }}
+                        onMouseLeave={() => { this._setBarIsActive(index, false); }}
+                        onClick={() => {
+                            if (this.props.onBarClick) {
+                                this.props.onBarClick(index);
+                            }
+                        }}
+                    />)
                 ),
 
                 [`translate(${-this._chartAreaW / 2 + 10}px, -60px)`]: (
@@ -413,10 +326,8 @@ class BarChart3D extends React.PureComponent {
                     }}>{this.props.yLabel}</div>
                 )
             }}
-        >{(cameraMat4) => [
-            /* reset motion instance any time we change bar map, otherwise it NaNs */
+        >{(cameraMat4) => <div>
             <Motion
-                key={this._barMapVersion}
                 defaultStyle={motionDefaultStyle}
                 style={motionStyle}
             >{motion => {
@@ -425,9 +336,9 @@ class BarChart3D extends React.PureComponent {
                 }
 
                 // chart bar display
-                barDisplayList.forEach((barId, index) => {
-                    const motionValue = motion[`v${barId}`];
-                    const motionExtraRadius = motion[`r${barId}`];
+                this._values.forEach((value, index) => {
+                    const motionValue = motion[`v${index}`];
+                    const motionExtraRadius = motion[`r${index}`];
 
                     vec2.set(this._barBaseVec2, (index * barCellSize) + startX, barRadius - 40);
 
@@ -447,20 +358,18 @@ class BarChart3D extends React.PureComponent {
 
                 // no element actually displayed
                 return null;
-            }}</Motion>,
+            }}</Motion>
 
-            this.props.children(this._barComponentClass),
-
-            barDisplayList.map(barId => {
-                const barContent = this._barMap[barId].props.children(
-                    this.state.barIsActive[barId]
+            {this._values.map((value, index) => {
+                const barContent = this.props.renderBar && this.props.renderBar(
+                    this.state.barIsActive[index]
                 );
 
                 return barContent && React.cloneElement(barContent, {
-                    key: barId
+                    key: index
                 });
-            })
-        ]}</Chart3DScene>;
+            })}
+        </div>}</Chart3DScene>;
     }
 }
 

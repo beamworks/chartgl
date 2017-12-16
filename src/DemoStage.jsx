@@ -190,7 +190,7 @@ class DemoStage extends React.PureComponent {
 
             <BarChart3D
                 key={this.state.version}
-                barCount={this.state.series.length}
+                values={this.state.series}
                 width={640}
                 height={480}
                 xLabel={this.state.xLabel}
@@ -199,13 +199,11 @@ class DemoStage extends React.PureComponent {
                 secondaryColor={this.state.palette[4]}
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
-            >{Bar => this.state.series.map((value, index) =>
-                <Bar key={index} index={index} value={value} onClick={() => {
+                renderBar={(isActive) => isActive ? <BumpSound /> : null}
+                onBarClick={() => {
                     chirpSound.play();
-                }}>{(isActive) =>
-                    isActive ? <BumpSound /> : null
-                }</Bar>
-            )}</BarChart3D>
+                }}
+            />
 
             <div
                 style={{
