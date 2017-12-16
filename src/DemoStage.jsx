@@ -92,8 +92,10 @@ class BumpSound extends React.PureComponent {
     }
 
     render() {
-        // no DOM is produced
-        return null;
+        // pass through a single DOM element
+        return this.props.children
+            ? React.Children.only(this.props.children)
+            : null;
     }
 }
 
@@ -199,7 +201,29 @@ class DemoStage extends React.PureComponent {
                 secondaryColor={this.state.palette[4]}
                 highlightColor={this.state.palette[2]}
                 labelColor={this.state.palette[1]}
-                renderBar={(isActive) => isActive ? <BumpSound /> : null}
+                renderBar={(index, isActive) => isActive ? <BumpSound>
+                    <span style={{
+                        position: 'absolute',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        color: '#444',
+                        padding: '0px 10px 3px', // vertical alignment nudge
+                        borderRadius: '5px',
+                        fontFamily: 'Michroma, Arial, sans-serif',
+                        fontSize: '20px',
+                        transform: 'translate(-50%, -100%) translate(0, -8px)'
+                    }}>
+                        <span style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: '50%',
+                            marginLeft: '-8px',
+                            borderLeft: '8px solid transparent',
+                            borderRight: '8px solid transparent',
+                            borderTop: '8px solid rgba(255, 255, 255, 0.9)'
+                        }} />
+                        {'0.' + Math.floor(100 + this.state.series[index] * 100).toString().slice(-2)}
+                    </span>
+                </BumpSound> : null}
                 onBarClick={() => {
                     chirpSound.play();
                 }}

@@ -52,6 +52,7 @@ class BarChart3D extends React.PureComponent {
 
         // reusable computation elements
         this._barBaseVec2 = vec2.create();
+        this._barTopVec3 = vec3.create();
     }
 
     _setBarIsActive(index, status) {
@@ -326,7 +327,11 @@ class BarChart3D extends React.PureComponent {
                     }}>{this.props.yLabel}</div>
                 )
             }}
-        >{(cameraMat4) => <div>
+        >{(cameraMat4) => <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0
+        }}>
             <Motion
                 defaultStyle={motionDefaultStyle}
                 style={motionStyle}
@@ -361,13 +366,36 @@ class BarChart3D extends React.PureComponent {
             }}</Motion>
 
             {this._values.map((value, index) => {
+                // position overlay content on bar top
+                vec3.set(
+                    this._barTopVec3,
+                    (index * barCellSize) + startX,
+                    barRadius - 40,
+                    value * this._chartAreaH
+                );
+
+                vec3.transformMat4(this._barTopVec3, this._barTopVec3, cameraMat4);
+
+                // convert from GL device space (-1 .. 1) to 2D CSS space
+                const x = (0.5 + 0.5 * this._barTopVec3[0]) * this._width;
+                const y = (0.5 - 0.5 * this._barTopVec3[1]) * this._height;
+
                 const barContent = this.props.renderBar && this.props.renderBar(
+                    index,
                     this.state.barIsActive[index]
                 );
 
-                return barContent && React.cloneElement(barContent, {
-                    key: index
-                });
+                // set up mouse listeners on overlay content to ensure hover continuity
+                return <div
+                    key={index}
+                    style={{
+                        position: 'absolute',
+                        top: `${y}px`,
+                        left: `${x}px`
+                    }}
+                    onMouseEnter={() => { this._setBarIsActive(index, true); }}
+                    onMouseLeave={() => { this._setBarIsActive(index, false); }}
+                >{barContent || null}</div>;
             })}
         </div>}</Chart3DScene>;
     }

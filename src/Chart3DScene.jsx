@@ -27,13 +27,13 @@ class Chart3DScene extends React.PureComponent {
 
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
+        // not clipping contents on root div to allow custom overlay content to spill out
         return <div
             style={{
                 position: 'relative',
                 display: 'inline-block',
                 width: this.props.viewportWidth + 'px',
-                height: this.props.viewportHeight + 'px',
-                overflow: 'hidden' // clip contents
+                height: this.props.viewportHeight + 'px'
             }}
         >
             <canvas
@@ -53,7 +53,6 @@ class Chart3DScene extends React.PureComponent {
                 left: 0,
                 width: 0,
                 height: 0,
-                zIndex: 1, // lift above main chart
 
                 // apply camera matrix, center transform and emulate WebGL device coord range (-1, 1)
                 transformStyle: 'preserve-3d',
@@ -78,6 +77,7 @@ class Chart3DScene extends React.PureComponent {
                 >{this.props.content3d[modelTransform]}</div>)}
             </div>
 
+            {/* custom overlay content */}
             {this.props.children(this._cameraMat4, cameraCssMat)}
         </div>;
     }
