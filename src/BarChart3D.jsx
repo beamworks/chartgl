@@ -290,6 +290,11 @@ class BarChart3D extends React.PureComponent {
                             left: 0,
                             width: '100px', // non-fractional size for better precision via scaling
                             height: this._chartAreaH + 'px',
+
+                            // prevent from showing on mobile tap hover
+                            // @todo reconsider for a11y
+                            WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
+
                             transformOrigin: '0 0',
                             transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
                         }}
