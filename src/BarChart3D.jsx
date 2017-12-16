@@ -150,15 +150,16 @@ class BarChart3D extends React.PureComponent {
         });
     }
 
-    _handleNodeRef = (node) => {
-        // ignore node unlinking
-        if (!node) {
-            return;
+    _handleCanvasRef = (canvas) => {
+        // when unlinking, help WebGL context get cleaned up
+        if (!canvas) {
+            this._regl.destroy();
+            this._regl = null; // dereference just in case
         }
 
         // initialize graphics
         this._regl = reglInit({
-            container: node
+            canvas: canvas
         });
 
         this._barCommand = this._regl({
@@ -325,12 +326,6 @@ class BarChart3D extends React.PureComponent {
         this.setState({ graphicsInitialized: true });
     }
 
-    componentWillUnmount() {
-        // help WebGL context get cleaned up
-        this._regl.destroy();
-        this._regl = null; // dereference just in case
-    }
-
     // eslint-disable-next-line max-statements
     render() {
         const barIdList = Object.keys(this._barMap);
@@ -396,17 +391,41 @@ class BarChart3D extends React.PureComponent {
             centerX={0}
             centerY={0}
             centerZ={this._chartAreaH / 2}
-        >{(cameraMat4, cameraCssMat) => <div
-            ref={this._handleNodeRef}
-            style={{
-                position: 'relative',
-                display: 'inline-block',
-                width: this._width + 'px',
-                height: this._height + 'px',
-                overflow: 'hidden' // clip contents
-            }}
-        >
-            {/* reset motion instance any time we change bar map, otherwise it NaNs */}
+            canvasRef={this._handleCanvasRef}
+            content3d={(cameraCssMat) => [
+                renderOverlaySpan(cameraCssMat, `translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
+                    whiteSpace: 'nowrap',
+
+                    fontFamily: 'Michroma, Arial, sans-serif',
+                    fontSize: '40px',
+                    lineHeight: 1,
+                    letterSpacing: '-2px',
+                    color: labelColorCss
+                }, this.props.xLabel, 'x'),
+
+                renderOverlaySpan(cameraCssMat, `translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                    whiteSpace: 'nowrap',
+
+                    fontFamily: 'Michroma, Arial, sans-serif',
+                    fontSize: '48px',
+                    lineHeight: 1,
+                    letterSpacing: '-2px',
+                    color: labelColorCss
+                }, this.props.yLabel, 'y')
+            ].concat(
+                barDisplayList.map((barId, index) => renderOverlaySpan(
+                    cameraCssMat,
+                    `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
+                    {
+                        width: '100px', // non-fractional size for better precision via scaling
+                        height: this._chartAreaH + 'px'
+                    },
+                    this._barMap[barId]._hoverArea,
+                    barId
+                ))
+            )}
+        >{(cameraMat4) => [
+            /* reset motion instance any time we change bar map, otherwise it NaNs */
             <Motion
                 key={this._barMapVersion}
                 defaultStyle={motionDefaultStyle}
@@ -439,55 +458,11 @@ class BarChart3D extends React.PureComponent {
 
                 // no element actually displayed
                 return null;
-            }}</Motion>
+            }}</Motion>,
 
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0,
-                zIndex: 1, // lift above main chart
+            this.props.children(this._barComponentClass),
 
-                // center transform and emulate WebGL device coord range (-1, 1)
-                transformStyle: 'preserve-3d',
-                transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
-            }}>
-                {renderOverlaySpan(cameraCssMat, `translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
-                    whiteSpace: 'nowrap',
-
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '40px',
-                    lineHeight: 1,
-                    letterSpacing: '-2px',
-                    color: labelColorCss
-                }, this.props.xLabel)}
-
-                {renderOverlaySpan(cameraCssMat, `translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
-                    whiteSpace: 'nowrap',
-
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '48px',
-                    lineHeight: 1,
-                    letterSpacing: '-2px',
-                    color: labelColorCss
-                }, this.props.yLabel)}
-
-                {barDisplayList.map((barId, index) => renderOverlaySpan(
-                    cameraCssMat,
-                    `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
-                    {
-                        width: '100px', // non-fractional size for better precision via scaling
-                        height: this._chartAreaH + 'px'
-                    },
-                    this._barMap[barId]._hoverArea,
-                    barId
-                ))}
-            </div>
-
-            {this.props.children(this._barComponentClass)}
-
-            {barDisplayList.map(barId => {
+            barDisplayList.map(barId => {
                 const barContent = this._barMap[barId].props.children(
                     this.state.barIsActive[barId]
                 );
@@ -495,8 +470,8 @@ class BarChart3D extends React.PureComponent {
                 return barContent && React.cloneElement(barContent, {
                     key: barId
                 });
-            })}
-        </div>}</Chart3DScene>;
+            })
+        ]}</Chart3DScene>;
     }
 }
 

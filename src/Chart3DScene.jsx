@@ -27,7 +27,43 @@ class Chart3DScene extends React.PureComponent {
 
         const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
 
-        return this.props.children(this._cameraMat4, cameraCssMat);
+        return <div
+            style={{
+                position: 'relative',
+                display: 'inline-block',
+                width: this.props.viewportWidth + 'px',
+                height: this.props.viewportHeight + 'px',
+                overflow: 'hidden' // clip contents
+            }}
+        >
+            <canvas
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0
+                }}
+                width={this.props.viewportWidth}
+                height={this.props.viewportHeight}
+                ref={this.props.canvasRef}
+            />
+
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0,
+                zIndex: 1, // lift above main chart
+
+                // center transform and emulate WebGL device coord range (-1, 1)
+                transformStyle: 'preserve-3d',
+                transform: `translate(${this.props.viewportWidth / 2}px, ${this.props.viewportHeight / 2}px) scale(${this.props.viewportWidth / 2}, ${-this.props.viewportHeight / 2})`
+            }}>
+                {this.props.content3d(cameraCssMat)}
+            </div>
+
+            {this.props.children(this._cameraMat4, cameraCssMat)}
+        </div>;
     }
 }
 
