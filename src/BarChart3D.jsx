@@ -2,7 +2,9 @@ import React from 'react';
 import { Motion, spring } from 'react-motion';
 import reglInit from 'regl';
 import onecolor from 'onecolor';
-import { mat4, vec2, vec3 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
+
+import Chart3DScene from './Chart3DScene.jsx';
 
 function hex2vector(cssHex) {
     const pc = onecolor(cssHex);
@@ -90,8 +92,6 @@ class BarChart3D extends React.PureComponent {
         this._regl = null; // initialized after first render
 
         // reusable computation elements
-        this._cameraMat4 = mat4.create();
-        this._cameraPositionVec3 = vec3.create();
         this._barBaseVec2 = vec2.create();
     }
 
@@ -349,20 +349,6 @@ class BarChart3D extends React.PureComponent {
         const highlightColor = hex2vector(this.props.highlightColor);
         const labelColorCss = this.props.labelColor;
 
-        mat4.perspective(this._cameraMat4, 0.5, this._width / this._height, 1, this._chartAreaW * 10);
-
-        // camera distance
-        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH * 4);
-        mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
-
-        // camera orbit pitch and yaw
-        mat4.rotateX(this._cameraMat4, this._cameraMat4, -1.0);
-        mat4.rotateZ(this._cameraMat4, this._cameraMat4, Math.PI / 6);
-
-        // camera offset
-        vec3.set(this._cameraPositionVec3, 0, 0, -this._chartAreaH / 2);
-        mat4.translate(this._cameraMat4, this._cameraMat4, this._cameraPositionVec3);
-
         // chart 3D layout
         const barCellSize = this._chartAreaW / barDisplayList.length;
         const barRadius = Math.max(this._barSpacing / 2, barCellSize / 2 - this._barSpacing); // padding of 10px
@@ -387,9 +373,8 @@ class BarChart3D extends React.PureComponent {
         });
 
         // CSS 3D helper
-        const cameraCssMat = `matrix3d(${this._cameraMat4.join(', ')})`;
-
-        function renderOverlaySpan(modelTransform, style, content, key) {
+        // @todo eliminate
+        function renderOverlaySpan(cameraCssMat, modelTransform, style, content, key) {
             return <span key={key} style={{
                 position: 'absolute',
                 top: 0,
@@ -404,7 +389,14 @@ class BarChart3D extends React.PureComponent {
             }}>{content}</span>;
         }
 
-        return <div
+        return <Chart3DScene
+            viewportWidth={this._width}
+            viewportHeight={this._height}
+            distance={this._chartAreaH * 4}
+            centerX={0}
+            centerY={0}
+            centerZ={this._chartAreaH / 2}
+        >{(cameraMat4, cameraCssMat) => <div
             ref={this._handleNodeRef}
             style={{
                 position: 'relative',
@@ -432,7 +424,7 @@ class BarChart3D extends React.PureComponent {
                     vec2.set(this._barBaseVec2, (index * barCellSize) + startX, barRadius - 40);
 
                     this._barCommand({
-                        camera: this._cameraMat4,
+                        camera: cameraMat4,
                         base: this._barBaseVec2,
                         radius: barRadius + motionExtraRadius,
                         height: this._chartAreaH * motionValue,
@@ -461,7 +453,7 @@ class BarChart3D extends React.PureComponent {
                 transformStyle: 'preserve-3d',
                 transform: `translate(${this._width / 2}px, ${this._height / 2}px) scale(${this._width / 2}, ${-this._height / 2})`
             }}>
-                {renderOverlaySpan(`translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
+                {renderOverlaySpan(cameraCssMat, `translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -471,7 +463,7 @@ class BarChart3D extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.xLabel)}
 
-                {renderOverlaySpan(`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                {renderOverlaySpan(cameraCssMat, `translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -482,6 +474,7 @@ class BarChart3D extends React.PureComponent {
                 }, this.props.yLabel)}
 
                 {barDisplayList.map((barId, index) => renderOverlaySpan(
+                    cameraCssMat,
                     `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
                     {
                         width: '100px', // non-fractional size for better precision via scaling
@@ -503,7 +496,7 @@ class BarChart3D extends React.PureComponent {
                     key: barId
                 });
             })}
-        </div>;
+        </div>}</Chart3DScene>;
     }
 }
 
