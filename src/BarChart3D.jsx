@@ -368,23 +368,6 @@ class BarChart3D extends React.PureComponent {
             );
         });
 
-        // CSS 3D helper
-        // @todo eliminate
-        function renderOverlaySpan(modelTransform, style, content, key) {
-            return <span key={key} style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-
-                // transform in the XY plane, flipping first, and apply camera matrix
-                transformStyle: 'preserve-3d',
-                transformOrigin: '0 0',
-                transform: `${modelTransform} scale(1, -1)`,
-
-                ...style
-            }}>{content}</span>;
-        }
-
         return <Chart3DScene
             viewportWidth={this._width}
             viewportHeight={this._height}
@@ -393,40 +376,43 @@ class BarChart3D extends React.PureComponent {
             centerY={0}
             centerZ={this._chartAreaH / 2}
             canvasRef={this._handleCanvasRef}
-            content3d={[
-                renderOverlaySpan(`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`, {
-                }, barDisplayList.map((barId, index) => <div key={barId} style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100px', // non-fractional size for better precision via scaling
-                    height: this._chartAreaH + 'px',
-                    transformOrigin: '0 0',
-                    transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
-                }}>{this._barMap[barId]._hoverArea}</div>), 'bars'),
+            content3d={{
+                [`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`]: (
+                    barDisplayList.map((barId, index) => <div key={barId} style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100px', // non-fractional size for better precision via scaling
+                        height: this._chartAreaH + 'px',
+                        transformOrigin: '0 0',
+                        transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
+                    }}>{this._barMap[barId]._hoverArea}</div>)
+                ),
 
-                renderOverlaySpan(`translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
-                }, <div style={{
-                    whiteSpace: 'nowrap',
+                [`translate(${-this._chartAreaW / 2 + 10}px, -60px)`]: (
+                    <div style={{
+                        whiteSpace: 'nowrap',
 
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '40px',
-                    lineHeight: 1,
-                    letterSpacing: '-2px',
-                    color: labelColorCss
-                }}>{this.props.xLabel}</div>, 'x'),
+                        fontFamily: 'Michroma, Arial, sans-serif',
+                        fontSize: '40px',
+                        lineHeight: 1,
+                        letterSpacing: '-2px',
+                        color: labelColorCss
+                    }}>{this.props.xLabel}</div>
+                ),
 
-                renderOverlaySpan(`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
-                }, <div style={{
-                    whiteSpace: 'nowrap',
+                [`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`]: (
+                    <div style={{
+                        whiteSpace: 'nowrap',
 
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '48px',
-                    lineHeight: 1,
-                    letterSpacing: '-2px',
-                    color: labelColorCss
-                }}>{this.props.yLabel}</div>, 'y')
-            ]}
+                        fontFamily: 'Michroma, Arial, sans-serif',
+                        fontSize: '48px',
+                        lineHeight: 1,
+                        letterSpacing: '-2px',
+                        color: labelColorCss
+                    }}>{this.props.yLabel}</div>
+                )
+            }}
         >{(cameraMat4) => [
             /* reset motion instance any time we change bar map, otherwise it NaNs */
             <Motion

@@ -55,7 +55,7 @@ class Chart3DScene extends React.PureComponent {
                 height: 0,
                 zIndex: 1, // lift above main chart
 
-                // center transform and emulate WebGL device coord range (-1, 1)
+                // apply camera matrix, center transform and emulate WebGL device coord range (-1, 1)
                 transformStyle: 'preserve-3d',
                 transform: `
                     translate(${this.props.viewportWidth / 2}px, ${this.props.viewportHeight / 2}px)
@@ -63,7 +63,19 @@ class Chart3DScene extends React.PureComponent {
                     ${cameraCssMat}
                 `
             }}>
-                {this.props.content3d}
+                {Object.keys(this.props.content3d).map(modelTransform => <div
+                    key={modelTransform}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+
+                        // transform in the XY plane, flipping first
+                        transformStyle: 'preserve-3d',
+                        transformOrigin: '0 0',
+                        transform: `${modelTransform} scale(1, -1)`
+                    }}
+                >{this.props.content3d[modelTransform]}</div>)}
             </div>
 
             {this.props.children(this._cameraMat4, cameraCssMat)}
