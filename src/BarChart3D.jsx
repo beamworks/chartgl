@@ -155,6 +155,7 @@ class BarChart3D extends React.PureComponent {
         if (!canvas) {
             this._regl.destroy();
             this._regl = null; // dereference just in case
+            return;
         }
 
         // initialize graphics
