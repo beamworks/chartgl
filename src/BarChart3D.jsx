@@ -369,7 +369,7 @@ class BarChart3D extends React.PureComponent {
 
         // CSS 3D helper
         // @todo eliminate
-        function renderOverlaySpan(cameraCssMat, modelTransform, style, content, key) {
+        function renderOverlaySpan(modelTransform, style, content, key) {
             return <span key={key} style={{
                 position: 'absolute',
                 top: 0,
@@ -378,7 +378,7 @@ class BarChart3D extends React.PureComponent {
                 // transform in the XY plane, flipping first, and apply camera matrix
                 transformStyle: 'preserve-3d',
                 transformOrigin: '0 0',
-                transform: `${cameraCssMat} ${modelTransform} scale(1, -1)`,
+                transform: `${modelTransform} scale(1, -1)`,
 
                 ...style
             }}>{content}</span>;
@@ -392,8 +392,8 @@ class BarChart3D extends React.PureComponent {
             centerY={0}
             centerZ={this._chartAreaH / 2}
             canvasRef={this._handleCanvasRef}
-            content3d={(cameraCssMat) => [
-                renderOverlaySpan(cameraCssMat, `translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
+            content3d={[
+                renderOverlaySpan(`translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -403,7 +403,7 @@ class BarChart3D extends React.PureComponent {
                     color: labelColorCss
                 }, this.props.xLabel, 'x'),
 
-                renderOverlaySpan(cameraCssMat, `translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                renderOverlaySpan(`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -414,7 +414,6 @@ class BarChart3D extends React.PureComponent {
                 }, this.props.yLabel, 'y')
             ].concat(
                 barDisplayList.map((barId, index) => renderOverlaySpan(
-                    cameraCssMat,
                     `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
                     {
                         width: '100px', // non-fractional size for better precision via scaling
