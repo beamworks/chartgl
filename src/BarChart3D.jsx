@@ -394,7 +394,19 @@ class BarChart3D extends React.PureComponent {
             centerZ={this._chartAreaH / 2}
             canvasRef={this._handleCanvasRef}
             content3d={[
+                renderOverlaySpan(`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`, {
+                }, barDisplayList.map((barId, index) => <div key={barId} style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100px', // non-fractional size for better precision via scaling
+                    height: this._chartAreaH + 'px',
+                    transformOrigin: '0 0',
+                    transform: `translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`
+                }}>{this._barMap[barId]._hoverArea}</div>), 'bars'),
+
                 renderOverlaySpan(`translate(${-this._chartAreaW / 2 + 10}px, -60px)`, {
+                }, <div style={{
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -402,9 +414,10 @@ class BarChart3D extends React.PureComponent {
                     lineHeight: 1,
                     letterSpacing: '-2px',
                     color: labelColorCss
-                }, this.props.xLabel, 'x'),
+                }}>{this.props.xLabel}</div>, 'x'),
 
                 renderOverlaySpan(`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`, {
+                }, <div style={{
                     whiteSpace: 'nowrap',
 
                     fontFamily: 'Michroma, Arial, sans-serif',
@@ -412,18 +425,8 @@ class BarChart3D extends React.PureComponent {
                     lineHeight: 1,
                     letterSpacing: '-2px',
                     color: labelColorCss
-                }, this.props.yLabel, 'y')
-            ].concat(
-                barDisplayList.map((barId, index) => renderOverlaySpan(
-                    `translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg) translate(${index * barCellSize}px, 0px) scale(${barCellSize / 100}, 1)`,
-                    {
-                        width: '100px', // non-fractional size for better precision via scaling
-                        height: this._chartAreaH + 'px'
-                    },
-                    this._barMap[barId]._hoverArea,
-                    barId
-                ))
-            )}
+                }}>{this.props.yLabel}</div>, 'y')
+            ]}
         >{(cameraMat4) => [
             /* reset motion instance any time we change bar map, otherwise it NaNs */
             <Motion
