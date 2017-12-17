@@ -181,6 +181,26 @@ class PieChart3D extends React.PureComponent {
         const highlightColor = hex2vector(this.props.highlightColor);
 
         let sliceStartAccumulator = -0.2;
+        const hoverSliceList = [].concat(...this._values.map((value, index) => {
+            const start = sliceStartAccumulator * 2 * Math.PI;
+            sliceStartAccumulator += value;
+
+            const quadCount = Math.ceil(value * 4);
+            const quadList = Array(...new Array(quadCount));
+            const quadAngle = value * 2 * Math.PI / quadCount;
+
+            return quadList.map((v, quadIndex) => <div key={index + 'q' + quadIndex} style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '250px',
+                height: '250px',
+                background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+
+                transformOrigin: '0 0',
+                transform: `rotate(${start + quadIndex * quadAngle}rad) matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)`
+            }} />);
+        }));
 
         return <Chart3DScene
             viewportWidth={this._width}
@@ -191,24 +211,7 @@ class PieChart3D extends React.PureComponent {
             centerZ={80}
             canvasRef={this._handleCanvasRef}
             content3d={{
-                [`translate3d(0, 0, 15px) scale(1, -1)`]: this._values.map((value, index) => {
-                    const start = sliceStartAccumulator * 2 * Math.PI;
-                    const angle = value * 2 * Math.PI;
-
-                    sliceStartAccumulator += value;
-
-                    return <div key={index} style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '250px',
-                        height: '250px',
-                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
-
-                        transformOrigin: '0 0',
-                        transform: `rotate(${start}rad) matrix(1, 0, ${Math.cos(angle)}, ${Math.sin(angle)}, 0, 0)`
-                    }} />
-                })
+                [`translate3d(0, 0, 15px) scale(1, -1)`]: hoverSliceList
             }}
         >{(cameraMat4) => <div style={{
             position: 'absolute',
