@@ -57,6 +57,9 @@ class PieChart3D extends React.PureComponent {
             canvas: canvas
         });
 
+        const segmentCount = 6;
+        const segmentList = Array(...new Array(segmentCount));
+
         this._sliceCommand = this._regl({
             vert: `
                 precision mediump float;
@@ -123,25 +126,25 @@ class PieChart3D extends React.PureComponent {
 
             attributes: {
                 position: this._regl.buffer([
-                    [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 1 ], [ 0, 0, 0 ], // inner face
-                    [ 0, 0, 1 ], [ 0, 0, 0 ], [ 1, 0, 1 ], [ 1, 0, 0 ], // start face
-                    [ 1, 0, 1 ], [ 1, 0, 0 ], [ 1, 1, 1 ], [ 1, 1, 0 ], // outer face
-                    [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 1 ], [ 0, 1, 0 ], // end face
+                    ...segmentList.map((v, index) => [ 0, 1 - (index / segmentCount), 1, 0, 1 - (index / segmentCount), 0 ]), [ 0, 0, 1, 0, 0, 0 ], // inner face
+                    [ 0, 0, 1, 0, 0, 0 ], [ 1, 0, 1, 1, 0, 0 ], // start face
+                    ...segmentList.map((v, index) => [ 1, (index / segmentCount), 1, 1, (index / segmentCount), 0 ]), [ 1, 1, 1, 1, 1, 0 ], // outer face
+                    [ 1, 1, 1, 1, 1, 0 ], [ 0, 1, 1, 0, 1, 0 ], // end face
 
-                    [ 0, 1, 0 ], [ 0, 0, 1 ], // degen connector
+                    [ 0, 1, 0, 0, 0, 1 ], // degen connector
 
-                    [ 0, 0, 1 ], [ 1, 0, 1 ], [ 0, 1, 1 ], [ 1, 1, 1 ] // top face
+                    ...segmentList.map((v, index) => [ 0, (index / segmentCount), 1, 1, (index / segmentCount), 1 ]), [ 0, 1, 1, 1, 1, 1 ] // top face
                 ]),
 
                 normal: this._regl.buffer([
-                    [ -1, 0, 0 ], [ -1, 0, 0 ], [ -1, 0, 0 ], [ -1, 0, 0 ], // inner face
-                    [ 0, -1, 0 ], [ 0, -1, 0 ], [ 0, -1, 0 ], [ 0, -1, 0 ], // start face
-                    [ 1, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 0 ], // outer face
-                    [ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 1, 0 ], // end face
+                    ...segmentList.map(() => [ -1, 0, 0, -1, 0, 0 ]), [ -1, 0, 0, -1, 0, 0 ], // inner face
+                    [ 0, -1, 0, 0, -1, 0 ], [ 0, -1, 0, 0, -1, 0 ], // start face
+                    ...segmentList.map(() => [ 1, 0, 0, 1, 0, 0 ]), [ 1, 0, 0, 1, 0, 0 ], // outer face
+                    [ 0, 1, 0, 0, 1, 0 ], [ 0, 1, 0, 0, 1, 0 ], // end face
 
-                    [ 0, 1, 0 ], [ 0, 0, 1 ], // degen connector
+                    [ 0, 1, 0, 0, 0, 1 ], // degen connector
 
-                    [ 0, 0, 1 ], [ 0, 0, 1 ], [ 0, 0, 1 ], [ 0, 0, 1 ] // top face
+                    ...segmentList.map(() => [ 0, 0, 1, 0, 0, 1 ]), [ 0, 0, 1, 0, 0, 1 ] // top face
                 ])
             },
 
@@ -159,7 +162,7 @@ class PieChart3D extends React.PureComponent {
             },
 
             primitive: 'triangle strip',
-            count: 4 * 4 + 2 + 4
+            count: (2 * segmentCount + 2) + 4 + (2 * segmentCount + 2) + 4 + 2 + (2 * segmentCount + 2)
         });
 
         this._regl.clear({
