@@ -57,6 +57,111 @@ class PieChart3D extends React.PureComponent {
             canvas: canvas
         });
 
+        this._sliceCommand = this._regl({
+            vert: `
+                precision mediump float;
+
+                uniform mat4 camera;
+                uniform float radius, width, height;
+                uniform float start, end;
+
+                attribute vec3 position;
+                attribute vec3 normal;
+
+                varying vec3 fragPosition;
+                varying vec3 fragNormal;
+
+                void main() {
+                    float azimuth = start + (end - start) * position.y;
+                    float sinA = sin(azimuth);
+                    float cosA = cos(azimuth);
+
+                    float dist = radius + position.x * width;
+                    float z = position.z * height;
+
+                    fragPosition = vec3(
+                        dist * cosA,
+                        dist * sinA,
+                        z
+                    );
+
+                    // rotate normal
+                    fragNormal = vec3(
+                        normal.x * cosA - normal.y * sinA,
+                        normal.y * cosA - normal.x * sinA,
+                        normal.z
+                    );
+
+                    gl_Position = camera * vec4(
+                        fragPosition,
+                        1.0
+                    );
+                }
+            `,
+
+            frag: `
+                precision mediump float;
+
+                uniform vec3 baseColor, secondaryColor, highlightColor;
+                uniform float height;
+                uniform float highlight;
+
+                varying vec3 fragPosition;
+                varying vec3 fragNormal;
+
+                void main() {
+                    vec3 pigmentColor = baseColor;
+
+                    vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
+                    float light = max(0.0, dot(fragNormal, lightDir));
+
+                    float highlightMix = 1.75 * max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
+
+                    gl_FragColor = vec4(mix(pigmentColor, highlightColor, highlightMix + (1.0 - highlightMix) * light), 1.0);
+                }
+            `,
+
+            attributes: {
+                position: this._regl.buffer([
+                    [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 1 ], [ 0, 0, 0 ], // inner face
+                    [ 0, 0, 1 ], [ 0, 0, 0 ], [ 1, 0, 1 ], [ 1, 0, 0 ], // start face
+                    [ 1, 0, 1 ], [ 1, 0, 0 ], [ 1, 1, 1 ], [ 1, 1, 0 ], // outer face
+                    [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 1 ], [ 0, 1, 0 ], // end face
+
+                    [ 0, 1, 0 ], [ 0, 0, 1 ], // degen connector
+
+                    [ 0, 0, 1 ], [ 1, 0, 1 ], [ 0, 1, 1 ], [ 1, 1, 1 ] // top face
+                ]),
+
+                normal: this._regl.buffer([
+                    [ -1, 0, 0 ], [ -1, 0, 0 ], [ -1, 0, 0 ], [ -1, 0, 0 ], // inner face
+                    [ 0, -1, 0 ], [ 0, -1, 0 ], [ 0, -1, 0 ], [ 0, -1, 0 ], // start face
+                    [ 1, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 0 ], // outer face
+                    [ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 1, 0 ], // end face
+
+                    [ 0, 1, 0 ], [ 0, 0, 1 ], // degen connector
+
+                    [ 0, 0, 1 ], [ 0, 0, 1 ], [ 0, 0, 1 ], [ 0, 0, 1 ] // top face
+                ])
+            },
+
+            uniforms: {
+                camera: this._regl.prop('camera'),
+                radius: this._regl.prop('radius'),
+                width: this._regl.prop('width'),
+                height: this._regl.prop('height'),
+                start: this._regl.prop('start'),
+                end: this._regl.prop('end'),
+                highlight: this._regl.prop('highlight'),
+                baseColor: this._regl.prop('baseColor'),
+                secondaryColor: this._regl.prop('secondaryColor'),
+                highlightColor: this._regl.prop('highlightColor')
+            },
+
+            primitive: 'triangle strip',
+            count: 4 * 4 + 2 + 4
+        });
+
         this._regl.clear({
             depth: 1
         });
@@ -86,12 +191,26 @@ class PieChart3D extends React.PureComponent {
             left: 0
         }}>
             <Motion
-                defaultStyle={{}}
-                style={{}}
+                defaultStyle={{ start: -1.8 }}
+                style={{ start: spring(0.4, { stiffness: 10, damping: 25 }) }}
             >{motion => {
                 if (!this._regl) {
                     return null;
                 }
+
+                // sample slice
+                this._sliceCommand({
+                    camera: cameraMat4,
+                    radius: 50,
+                    width: 150,
+                    height: 50,
+                    start: motion.start,
+                    end: 0.6,
+                    highlight: 0,
+                    baseColor: baseColor,
+                    secondaryColor: secondaryColor,
+                    highlightColor: highlightColor
+                });
 
                 // no element actually displayed
                 return null;
