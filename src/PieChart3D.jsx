@@ -197,8 +197,13 @@ class PieChart3D extends React.PureComponent {
                 height: '250px',
                 background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
 
+                // rotate to starting angle and shear to have the needed corner angle
                 transformOrigin: '0 0',
-                transform: `rotate(${start + quadIndex * quadAngle}rad) matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)`
+                transform: `
+                    translate(250px, 250px)
+                    rotate(${start + quadIndex * quadAngle}rad)
+                    matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
+                `
             }} />);
         }));
 
@@ -211,7 +216,22 @@ class PieChart3D extends React.PureComponent {
             centerZ={80}
             canvasRef={this._handleCanvasRef}
             content3d={{
-                [`translate3d(0, 0, 15px) scale(1, -1)`]: hoverSliceList
+                [`translate3d(0, 0, 15px) scale(1, -1)`]: (
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '500px',
+                        height: '500px',
+
+                        overflow: 'hidden', // clip hover slices that stick out past the edge
+                        borderRadius: '50%', // round into a circle (@todo on Chrome this does not clip mouse events)
+
+                        transformOrigin: '0 0',
+                        transform: `translate(-250px, -250px)`
+                    }}>{hoverSliceList}</div>
+                )
+
             }}
         >{(cameraMat4) => <div style={{
             position: 'absolute',
