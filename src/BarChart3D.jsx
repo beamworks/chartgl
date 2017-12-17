@@ -308,6 +308,7 @@ class BarChart3D extends React.PureComponent {
                     />)
                 ),
 
+                // @todo carry out contents
                 [`translate(${-this._chartAreaW / 2 + 10}px, -60px)`]: (
                     <div style={{
                         whiteSpace: 'nowrap',
@@ -320,6 +321,7 @@ class BarChart3D extends React.PureComponent {
                     }}>{this.props.xLabel}</div>
                 ),
 
+                // @todo carry out contents
                 [`translate(${this._chartAreaW / 2 + 10}px, -40px) rotateX(90deg) rotateZ(90deg)`]: (
                     <div style={{
                         whiteSpace: 'nowrap',

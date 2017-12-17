@@ -3,6 +3,7 @@ import React from 'react';
 import { Motion, spring } from 'react-motion';
 
 import BarChart3D from './BarChart3D.jsx';
+import PieChart3D from './PieChart3D.jsx';
 import boopUrl from './boop.wav';
 import bumpUrl from './bump.wav';
 import chirpUrl from './chirp.wav';
@@ -227,6 +228,16 @@ class DemoStage extends React.PureComponent {
                 onBarClick={() => {
                     chirpSound.play();
                 }}
+            />
+
+            <PieChart3D
+                key={this.state.version + 1}
+                values={this.state.series}
+                width={640}
+                height={480}
+                baseColor={this.state.palette[3]}
+                secondaryColor={this.state.palette[4]}
+                highlightColor={this.state.palette[2]}
             />
 
             <div
