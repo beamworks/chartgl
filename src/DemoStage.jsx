@@ -140,8 +140,12 @@ class DemoStage extends React.PureComponent {
             ? Math.floor(Math.random() * colorPalettes.length)
             : 1;
 
+        const pieRawData = Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random());
+        const pieSum = pieRawData.reduce((sum, value) => sum + value, 0);
+
         this.setState({
             series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
+            pieSeries: pieRawData.map(value => value / pieSum),
             palette: colorPalettes[paletteIndex],
             version: this.state.version + 1
         });
@@ -232,7 +236,7 @@ class DemoStage extends React.PureComponent {
 
             <PieChart3D
                 key={this.state.version + 1}
-                values={this.state.series}
+                values={this.state.pieSeries}
                 width={640}
                 height={480}
                 baseColor={this.state.palette[3]}

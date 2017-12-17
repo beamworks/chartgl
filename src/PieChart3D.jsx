@@ -58,13 +58,15 @@ class PieChart3D extends React.PureComponent {
         });
 
         this._sliceCommandList = this._values.map(value => {
-            // about 68 segments for entire circle
-            const segmentCount = Math.ceil(value / 0.1);
+            // 64 segments for entire circle
+            const segmentCount = Math.ceil(value * 64);
             const segmentList = Array(...new Array(segmentCount));
 
             return this._regl({
                 vert: `
                     precision mediump float;
+
+                    #define M_PI 3.1415926535897932384626433832795
 
                     uniform mat4 camera;
                     uniform float radius, width, height;
@@ -77,7 +79,7 @@ class PieChart3D extends React.PureComponent {
                     varying vec3 fragNormal;
 
                     void main() {
-                        float azimuth = start + (end - start) * position.y;
+                        float azimuth = 2.0 * M_PI * (start + (end - start) * position.y);
                         float sinA = sin(azimuth);
                         float cosA = cos(azimuth);
 
@@ -220,7 +222,7 @@ class PieChart3D extends React.PureComponent {
 
                     // set up next start
                     return end;
-                }, -1);
+                }, -0.2);
 
                 // no element actually displayed
                 return null;
