@@ -57,112 +57,112 @@ class PieChart3D extends React.PureComponent {
             canvas: canvas
         });
 
-        const segmentCount = 6;
-        const segmentList = Array(...new Array(segmentCount));
+        this._sliceCommandList = this._values.map(value => {
+            // about 68 segments for entire circle
+            const segmentCount = Math.ceil(value / 0.1);
+            const segmentList = Array(...new Array(segmentCount));
 
-        this._sliceCommand = this._regl({
-            vert: `
-                precision mediump float;
+            return this._regl({
+                vert: `
+                    precision mediump float;
 
-                uniform mat4 camera;
-                uniform float radius, width, height;
-                uniform float start, end;
+                    uniform mat4 camera;
+                    uniform float radius, width, height;
+                    uniform float start, end;
 
-                attribute vec3 position;
-                attribute vec3 normal;
+                    attribute vec3 position;
+                    attribute vec3 normal;
 
-                varying vec3 fragPosition;
-                varying vec3 fragNormal;
+                    varying vec3 fragPosition;
+                    varying vec3 fragNormal;
 
-                void main() {
-                    float azimuth = start + (end - start) * position.y;
-                    float sinA = sin(azimuth);
-                    float cosA = cos(azimuth);
+                    void main() {
+                        float azimuth = start + (end - start) * position.y;
+                        float sinA = sin(azimuth);
+                        float cosA = cos(azimuth);
 
-                    float dist = radius + position.x * width;
-                    float z = position.z * height;
+                        float dist = radius + position.x * width;
+                        float z = position.z * height;
 
-                    fragPosition = vec3(
-                        dist * cosA,
-                        dist * sinA,
-                        z
-                    );
+                        fragPosition = vec3(
+                            dist * cosA,
+                            dist * sinA,
+                            z
+                        );
 
-                    // rotate normal
-                    fragNormal = vec3(
-                        normal.x * cosA - normal.y * sinA,
-                        normal.y * cosA - normal.x * sinA,
-                        normal.z
-                    );
+                        // rotate normal
+                        fragNormal = vec3(
+                            normal.x * cosA - normal.y * sinA,
+                            normal.y * cosA + normal.x * sinA,
+                            normal.z
+                        );
 
-                    gl_Position = camera * vec4(
-                        fragPosition,
-                        1.0
-                    );
-                }
-            `,
+                        gl_Position = camera * vec4(
+                            fragPosition,
+                            1.0
+                        );
+                    }
+                `,
 
-            frag: `
-                precision mediump float;
+                frag: `
+                    precision mediump float;
 
-                uniform vec3 baseColor, secondaryColor, highlightColor;
-                uniform float height;
-                uniform float highlight;
+                    uniform vec3 baseColor, secondaryColor, highlightColor;
+                    uniform float height;
+                    uniform float highlight;
 
-                varying vec3 fragPosition;
-                varying vec3 fragNormal;
+                    varying vec3 fragPosition;
+                    varying vec3 fragNormal;
 
-                void main() {
-                    vec3 pigmentColor = baseColor;
+                    void main() {
+                        vec3 pigmentColor = baseColor;
 
-                    vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
-                    float light = max(0.0, dot(fragNormal, lightDir));
+                        vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
+                        float light = max(0.0, dot(fragNormal, lightDir));
 
-                    float highlightMix = 1.75 * max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
+                        float highlightMix = 1.75 * max(0.0, min(0.5, highlight - 0.25)); // clip off bouncy edges of value range
 
-                    gl_FragColor = vec4(mix(pigmentColor, highlightColor, highlightMix + (1.0 - highlightMix) * light), 1.0);
-                }
-            `,
+                        gl_FragColor = vec4(mix(pigmentColor, highlightColor, highlightMix + (1.0 - highlightMix) * light), 1.0);
+                    }
+                `,
 
-            attributes: {
-                position: this._regl.buffer([
-                    ...segmentList.map((v, index) => [ 0, 1 - (index / segmentCount), 1, 0, 1 - (index / segmentCount), 0 ]), [ 0, 0, 1, 0, 0, 0 ], // inner face
-                    [ 0, 0, 1, 0, 0, 0 ], [ 1, 0, 1, 1, 0, 0 ], // start face
-                    ...segmentList.map((v, index) => [ 1, (index / segmentCount), 1, 1, (index / segmentCount), 0 ]), [ 1, 1, 1, 1, 1, 0 ], // outer face
-                    [ 1, 1, 1, 1, 1, 0 ], [ 0, 1, 1, 0, 1, 0 ], // end face
+                // define data in two-vertex batches (ReGL flattens sub-arrays, but needs them to be consistent size)
+                attributes: {
+                    position: this._regl.buffer([
+                        ...segmentList.map((v, index) => [ 0, 1 - (index / segmentCount), 1, 0, 1 - (index / segmentCount), 0 ]), [ 0, 0, 1, 0, 0, 0 ], // inner face
+                        [ 0, 0, 1, 0, 0, 0 ], [ 1, 0, 1, 1, 0, 0 ], // start face
+                        ...segmentList.map((v, index) => [ 1, (index / segmentCount), 1, 1, (index / segmentCount), 0 ]), [ 1, 1, 1, 1, 1, 0 ], // outer face
+                        [ 1, 1, 1, 1, 1, 0 ], [ 0, 1, 1, 0, 1, 0 ], // end face
+                        [ 0, 1, 0, 0, 0, 1 ], // degen connector
+                        ...segmentList.map((v, index) => [ 0, (index / segmentCount), 1, 1, (index / segmentCount), 1 ]), [ 0, 1, 1, 1, 1, 1 ] // top face
+                    ]),
 
-                    [ 0, 1, 0, 0, 0, 1 ], // degen connector
+                    normal: this._regl.buffer([
+                        ...segmentList.map(() => [ -1, 0, 0, -1, 0, 0 ]), [ -1, 0, 0, -1, 0, 0 ], // inner face
+                        [ 0, -1, 0, 0, -1, 0 ], [ 0, -1, 0, 0, -1, 0 ], // start face
+                        ...segmentList.map(() => [ 1, 0, 0, 1, 0, 0 ]), [ 1, 0, 0, 1, 0, 0 ], // outer face
+                        [ 0, 1, 0, 0, 1, 0 ], [ 0, 1, 0, 0, 1, 0 ], // end face
+                        [ 0, 1, 0, 0, 0, 1 ], // degen connector
+                        ...segmentList.map(() => [ 0, 0, 1, 0, 0, 1 ]), [ 0, 0, 1, 0, 0, 1 ] // top face
+                    ])
+                },
 
-                    ...segmentList.map((v, index) => [ 0, (index / segmentCount), 1, 1, (index / segmentCount), 1 ]), [ 0, 1, 1, 1, 1, 1 ] // top face
-                ]),
+                uniforms: {
+                    camera: this._regl.prop('camera'),
+                    radius: this._regl.prop('radius'),
+                    width: this._regl.prop('width'),
+                    height: this._regl.prop('height'),
+                    start: this._regl.prop('start'),
+                    end: this._regl.prop('end'),
+                    highlight: this._regl.prop('highlight'),
+                    baseColor: this._regl.prop('baseColor'),
+                    secondaryColor: this._regl.prop('secondaryColor'),
+                    highlightColor: this._regl.prop('highlightColor')
+                },
 
-                normal: this._regl.buffer([
-                    ...segmentList.map(() => [ -1, 0, 0, -1, 0, 0 ]), [ -1, 0, 0, -1, 0, 0 ], // inner face
-                    [ 0, -1, 0, 0, -1, 0 ], [ 0, -1, 0, 0, -1, 0 ], // start face
-                    ...segmentList.map(() => [ 1, 0, 0, 1, 0, 0 ]), [ 1, 0, 0, 1, 0, 0 ], // outer face
-                    [ 0, 1, 0, 0, 1, 0 ], [ 0, 1, 0, 0, 1, 0 ], // end face
-
-                    [ 0, 1, 0, 0, 0, 1 ], // degen connector
-
-                    ...segmentList.map(() => [ 0, 0, 1, 0, 0, 1 ]), [ 0, 0, 1, 0, 0, 1 ] // top face
-                ])
-            },
-
-            uniforms: {
-                camera: this._regl.prop('camera'),
-                radius: this._regl.prop('radius'),
-                width: this._regl.prop('width'),
-                height: this._regl.prop('height'),
-                start: this._regl.prop('start'),
-                end: this._regl.prop('end'),
-                highlight: this._regl.prop('highlight'),
-                baseColor: this._regl.prop('baseColor'),
-                secondaryColor: this._regl.prop('secondaryColor'),
-                highlightColor: this._regl.prop('highlightColor')
-            },
-
-            primitive: 'triangle strip',
-            count: (2 * segmentCount + 2) + 4 + (2 * segmentCount + 2) + 4 + 2 + (2 * segmentCount + 2)
+                primitive: 'triangle strip',
+                count: (2 * segmentCount + 2) + 4 + (2 * segmentCount + 2) + 4 + 2 + (2 * segmentCount + 2)
+            });
         });
 
         this._regl.clear({
@@ -181,10 +181,10 @@ class PieChart3D extends React.PureComponent {
         return <Chart3DScene
             viewportWidth={this._width}
             viewportHeight={this._height}
-            distance={600}
+            distance={1200}
             centerX={0}
             centerY={0}
-            centerZ={0}
+            centerZ={80}
             canvasRef={this._handleCanvasRef}
             content3d={{
             }}
@@ -194,26 +194,33 @@ class PieChart3D extends React.PureComponent {
             left: 0
         }}>
             <Motion
-                defaultStyle={{ start: -1.8 }}
-                style={{ start: spring(0.4, { stiffness: 10, damping: 25 }) }}
+                defaultStyle={{ start: 0 }}
+                style={{ start: spring(1, { stiffness: 320, damping: 15 }) }}
             >{motion => {
                 if (!this._regl) {
                     return null;
                 }
 
                 // sample slice
-                this._sliceCommand({
-                    camera: cameraMat4,
-                    radius: 50,
-                    width: 150,
-                    height: 50,
-                    start: motion.start,
-                    end: 0.6,
-                    highlight: 0,
-                    baseColor: baseColor,
-                    secondaryColor: secondaryColor,
-                    highlightColor: highlightColor
-                });
+                this._values.reduce((start, value, index) => {
+                    const end = start + value;
+
+                    this._sliceCommandList[index]({
+                        camera: cameraMat4,
+                        radius: 100,
+                        width: 150,
+                        height: 10 + motion.start * index * 8,
+                        start: start,
+                        end: end,
+                        highlight: 0,
+                        baseColor: baseColor,
+                        secondaryColor: secondaryColor,
+                        highlightColor: highlightColor
+                    });
+
+                    // set up next start
+                    return end;
+                }, -1);
 
                 // no element actually displayed
                 return null;
