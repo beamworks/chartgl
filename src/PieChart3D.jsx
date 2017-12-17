@@ -180,6 +180,8 @@ class PieChart3D extends React.PureComponent {
         const secondaryColor = hex2vector(this.props.secondaryColor);
         const highlightColor = hex2vector(this.props.highlightColor);
 
+        let sliceStartAccumulator = -0.2;
+
         return <Chart3DScene
             viewportWidth={this._width}
             viewportHeight={this._height}
@@ -189,6 +191,24 @@ class PieChart3D extends React.PureComponent {
             centerZ={80}
             canvasRef={this._handleCanvasRef}
             content3d={{
+                [`translate3d(0, 0, 15px) scale(1, -1)`]: this._values.map((value, index) => {
+                    const start = sliceStartAccumulator * 2 * Math.PI;
+                    const angle = value * 2 * Math.PI;
+
+                    sliceStartAccumulator += value;
+
+                    return <div key={index} style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '250px',
+                        height: '250px',
+                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+
+                        transformOrigin: '0 0',
+                        transform: `rotate(${start}rad) matrix(1, 0, ${Math.cos(angle)}, ${Math.sin(angle)}, 0, 0)`
+                    }} />
+                })
             }}
         >{(cameraMat4) => <div style={{
             position: 'absolute',
