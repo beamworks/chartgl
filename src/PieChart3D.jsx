@@ -185,7 +185,7 @@ class PieChart3D extends React.PureComponent {
             const start = sliceStartAccumulator * 2 * Math.PI;
             sliceStartAccumulator += value;
 
-            const quadCount = Math.ceil(value * 4);
+            const quadCount = Math.ceil(value * 12);
             const quadList = Array(...new Array(quadCount));
             const quadAngle = value * 2 * Math.PI / quadCount;
 
@@ -195,7 +195,7 @@ class PieChart3D extends React.PureComponent {
                 left: 0,
                 width: '250px',
                 height: '250px',
-                background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+                overflow: 'hidden',
 
                 // rotate to starting angle and shear to have the needed corner angle
                 transformOrigin: '0 0',
@@ -204,7 +204,22 @@ class PieChart3D extends React.PureComponent {
                     rotate(${start + quadIndex * quadAngle}rad)
                     matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
                 `
-            }} />);
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+
+                    // shear to be clipped into a triangle
+                    transformOrigin: '0 0',
+                    transform: `
+                        matrix(1, 0, -1, 1, 0, 0)
+                    `
+                }} />
+            </div>);
         }));
 
         return <Chart3DScene
@@ -223,9 +238,6 @@ class PieChart3D extends React.PureComponent {
                         left: 0,
                         width: '500px',
                         height: '500px',
-
-                        overflow: 'hidden', // clip hover slices that stick out past the edge
-                        borderRadius: '50%', // round into a circle (@todo on Chrome this does not clip mouse events)
 
                         transformOrigin: '0 0',
                         transform: `translate(-250px, -250px)`
