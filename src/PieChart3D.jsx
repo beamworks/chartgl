@@ -193,52 +193,41 @@ class PieChart3D extends React.PureComponent {
             const quadList = Array(...new Array(quadCount));
             const quadAngle = value * 2 * Math.PI / quadCount;
 
-            const quadNodeList = quadList.map((v, quadIndex) => <div key={index + 'q' + quadIndex} style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '250px',
-                height: '250px',
-                overflow: 'hidden',
-
-                // rotate to quad angle and shear to have the needed corner angle
-                transformOrigin: '0 0',
-                transform: `
-                    translate(250px, 250px)
-                    rotate(${quadIndex * quadAngle}rad)
-                    matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
-                `
-            }}>
-                <div style={{
+            quadList.forEach((v, quadIndex) => {
+                content3d[`
+                    translate3d(0, 0, ${height}px)
+                    rotate(${start + quadIndex * quadAngle}rad)
+                    scale(1, -1)
+                `] = <div style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    width: '100%',
-                    height: '100%',
-                    background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+                    width: '250px',
+                    height: '250px',
+                    overflow: 'hidden',
 
-                    // shear to be clipped into a triangle
+                    // rotate to quad angle and shear to have the needed corner angle
                     transformOrigin: '0 0',
                     transform: `
-                        matrix(1, 0, -1, 1, 0, 0)
+                        matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
                     `
-                }} />
-            </div>);
+                }}>
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
 
-            content3d[`
-                translate3d(0, 0, ${height}px)
-                rotate(${start}rad)
-                scale(1, -1)
-            `] = <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '500px',
-                height: '500px',
-
-                transformOrigin: '0 0',
-                transform: `translate(-250px, -250px)`
-            }}>{quadNodeList}</div>
+                        // shear to be clipped into a triangle
+                        transformOrigin: '0 0',
+                        transform: `
+                            matrix(1, 0, -1, 1, 0, 0)
+                        `
+                    }} />
+                </div>;
+            });
         });
 
         return <Chart3DScene
