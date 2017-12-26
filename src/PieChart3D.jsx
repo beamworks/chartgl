@@ -180,16 +180,20 @@ class PieChart3D extends React.PureComponent {
         const secondaryColor = hex2vector(this.props.secondaryColor);
         const highlightColor = hex2vector(this.props.highlightColor);
 
+        const content3d = {};
+
         let sliceStartAccumulator = -0.2;
-        const hoverSliceList = [].concat(...this._values.map((value, index) => {
+        this._values.forEach((value, index) => {
             const start = sliceStartAccumulator * 2 * Math.PI;
             sliceStartAccumulator += value;
+
+            const height = 10 + index * 8;
 
             const quadCount = Math.ceil(value * 12);
             const quadList = Array(...new Array(quadCount));
             const quadAngle = value * 2 * Math.PI / quadCount;
 
-            return quadList.map((v, quadIndex) => <div key={index + 'q' + quadIndex} style={{
+            const quadNodeList = quadList.map((v, quadIndex) => <div key={index + 'q' + quadIndex} style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -197,11 +201,11 @@ class PieChart3D extends React.PureComponent {
                 height: '250px',
                 overflow: 'hidden',
 
-                // rotate to starting angle and shear to have the needed corner angle
+                // rotate to quad angle and shear to have the needed corner angle
                 transformOrigin: '0 0',
                 transform: `
                     translate(250px, 250px)
-                    rotate(${start + quadIndex * quadAngle}rad)
+                    rotate(${quadIndex * quadAngle}rad)
                     matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
                 `
             }}>
@@ -220,7 +224,22 @@ class PieChart3D extends React.PureComponent {
                     `
                 }} />
             </div>);
-        }));
+
+            content3d[`
+                translate3d(0, 0, ${height}px)
+                rotate(${start}rad)
+                scale(1, -1)
+            `] = <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '500px',
+                height: '500px',
+
+                transformOrigin: '0 0',
+                transform: `translate(-250px, -250px)`
+            }}>{quadNodeList}</div>
+        });
 
         return <Chart3DScene
             viewportWidth={this._width}
@@ -230,21 +249,7 @@ class PieChart3D extends React.PureComponent {
             centerY={0}
             centerZ={80}
             canvasRef={this._handleCanvasRef}
-            content3d={{
-                [`translate3d(0, 0, 15px) scale(1, -1)`]: (
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '500px',
-                        height: '500px',
-
-                        transformOrigin: '0 0',
-                        transform: `translate(-250px, -250px)`
-                    }}>{hoverSliceList}</div>
-                )
-
-            }}
+            content3d={content3d}
         >{(cameraMat4) => <div style={{
             position: 'absolute',
             top: 0,
