@@ -44,8 +44,8 @@ class PieChart3D extends React.PureComponent {
 
         this._chartRadius = 250;
         this._chartInnerRadius = 100;
-        this._chartSliceHeightMin = 20;
-        this._chartSliceHeightMax = 150;
+        this._chartSliceHeightMin = 30;
+        this._chartSliceHeightMax = 50;
         this._startOffset = -0.2; // fraction of whole circle
         this._sliceExtraRadius = this._chartRadius * 0.06;
         this._patternSize = 50;
@@ -274,7 +274,8 @@ class PieChart3D extends React.PureComponent {
         const highlightColor = hex2vector(this.props.highlightColor);
 
         const sliceHeightRange = this._chartSliceHeightMax - this._chartSliceHeightMin;
-        const sliceHeightIncrement = sliceHeightRange / Math.max(1, this._values.length - 1);
+        const sortedValues = [].concat(this._values).sort();
+        const maxValue = sortedValues[sortedValues.length - 1];
 
         const content3d = {};
 
@@ -287,7 +288,7 @@ class PieChart3D extends React.PureComponent {
             const isActive = this.state.sliceIsActive[index];
 
             const startAngle = start * 2 * Math.PI;
-            const height = this._chartSliceHeightMin + index * sliceHeightIncrement;
+            const height = this._chartSliceHeightMin + (value / maxValue) * sliceHeightRange;
 
             motionDefaultStyle[`h${index}`] = this._chartSliceHeightMin;
             motionStyle[`h${index}`] = spring(height, { stiffness: 320, damping: 12 });
@@ -305,8 +306,6 @@ class PieChart3D extends React.PureComponent {
             const quadSpanFraction = 2 * Math.sin(quadAngle / 2);
 
             const cameraOrbit = Math.PI / 6; // @todo bring this in from scene component
-            const normAngle = (startAngle + 2 * Math.PI + cameraOrbit) % (2 * Math.PI);
-            const sideWallIsVisible = (normAngle > Math.PI * 1.5 || normAngle < Math.PI * 0.5);
 
             quadList.forEach((v, quadIndex) => {
                 const quadStartAngle = startAngle + quadIndex * quadAngle;
@@ -373,27 +372,6 @@ class PieChart3D extends React.PureComponent {
                     />;
                 }
             });
-
-            // side wall
-            if (index > 0 && sideWallIsVisible) {
-                content3d[`
-                    rotate(${startAngle}rad)
-                    translate3d(0, 0, ${height - sliceHeightIncrement}px)
-                    rotateX(-90deg)
-                    scale(1, ${sliceHeightIncrement / 100})
-                `] = <div
-                    style={{
-                        position: 'absolute',
-                        zIndex: index,
-                        top: 0,
-                        left: 0,
-                        width: `${this._chartRadius}px`,
-                        height: '100px'
-                    }}
-                    onMouseEnter={() => { this._setSliceIsActive(index, true); }}
-                    onMouseLeave={() => { this._setSliceIsActive(index, false); }}
-                />;
-            }
 
             // set up next start
             return end;
