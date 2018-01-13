@@ -234,6 +234,12 @@ class DemoStage extends React.PureComponent {
                 }}
             />
 
+            <div
+                style={{
+                    display: 'block'
+                }}
+            />
+
             <PieChart3D
                 key={this.state.version + 1}
                 values={this.state.pieSeries}
