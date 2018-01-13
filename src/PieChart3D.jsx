@@ -44,10 +44,11 @@ class PieChart3D extends React.PureComponent {
 
         this._chartRadius = 250;
         this._chartInnerRadius = 100;
-        this._chartSliceHeightMin = 10;
-        this._chartSliceHeightMax = 90;
+        this._chartSliceHeightMin = 20;
+        this._chartSliceHeightMax = 150;
         this._startOffset = -0.2; // fraction of whole circle
         this._sliceExtraRadius = this._chartRadius * 0.06;
+        this._patternSize = 50;
 
         this._regl = null; // initialized after first render
     }
@@ -106,8 +107,8 @@ class PieChart3D extends React.PureComponent {
                         float z = position.z * height;
 
                         fragPosition = vec3(
-                            dist * cosA,
-                            dist * sinA,
+                            azimuth * (radius + width * 0.5) * 1.4, // hand-tuned for highlight anim
+                            (radius + width - dist),
                             z
                         );
 
@@ -119,7 +120,9 @@ class PieChart3D extends React.PureComponent {
                         );
 
                         gl_Position = camera * vec4(
-                            fragPosition,
+                            dist * cosA,
+                            dist * sinA,
+                            z,
                             1.0
                         );
                     }
@@ -131,12 +134,81 @@ class PieChart3D extends React.PureComponent {
                     uniform vec3 baseColor, secondaryColor, highlightColor;
                     uniform float height;
                     uniform float highlight;
+                    uniform int patternIndex;
+                    uniform float patternSize;
 
                     varying vec3 fragPosition;
                     varying vec3 fragNormal;
 
+                    float stripePattern() {
+                        return step(patternSize * 0.5, mod((
+                            fragPosition.y
+                            - fragPosition.x
+                            + (height - fragPosition.z)
+                        ), patternSize));
+                    }
+
+                    float stripe2Pattern() {
+                        return step(patternSize * 0.5, mod((
+                            fragPosition.x
+                            - fragPosition.y
+                            + (height - fragPosition.z)
+                        ), patternSize));
+                    }
+
+                    float checkerPattern() {
+                        vec3 cellPosition = vec3(0, 0, height) - fragPosition;
+                        float cellSize = patternSize * 0.4;
+
+                        vec3 cellIndex = cellPosition / cellSize;
+                        float dotChoice = mod((
+                            step(1.0, mod(cellIndex.x, 2.0))
+                            + step(1.0, mod(cellIndex.y, 2.0))
+                            + step(1.0, mod(cellIndex.z, 2.0))
+                        ), 2.0);
+
+                        return dotChoice;
+                    }
+
+                    float dotPattern() {
+                        vec3 attachedPos = vec3(0, 0, height) - fragPosition;
+
+                        float dotSize = patternSize * 0.3;
+                        vec3 dotPosition = attachedPos + dotSize * 0.5;
+                        float dotDistance = length(mod(dotPosition, dotSize) / dotSize - vec3(0.5));
+
+                        vec3 dotIndex = dotPosition / dotSize;
+                        float dotChoice = mod((
+                            step(1.0, mod(dotIndex.x, 2.0))
+                            + step(1.0, mod(dotIndex.y, 2.0))
+                            + step(1.0, mod(dotIndex.z, 2.0))
+                        ), 2.0);
+
+                        return dotChoice * step(dotDistance, 0.5);
+                    }
+
+                    float pattern() {
+                        if (patternIndex == 0) {
+                            return stripePattern();
+                        }
+
+                        if (patternIndex == 1) {
+                            return checkerPattern();
+                        }
+
+                        if (patternIndex == 2) {
+                            return stripe2Pattern();
+                        }
+
+                        if (patternIndex == 3) {
+                            return dotPattern();
+                        }
+
+                        return 0.0;
+                    }
+
                     void main() {
-                        vec3 pigmentColor = baseColor;
+                        vec3 pigmentColor = mix(baseColor, secondaryColor, pattern());
 
                         vec3 lightDir = vec3(-0.5, 0.5, 1.0); // non-normalized to ensure top is at 1
                         float light = max(0.0, dot(fragNormal, lightDir));
@@ -176,6 +248,8 @@ class PieChart3D extends React.PureComponent {
                     start: this._regl.prop('start'),
                     end: this._regl.prop('end'),
                     highlight: this._regl.prop('highlight'),
+                    patternIndex: this._regl.prop('patternIndex'),
+                    patternSize: this._regl.prop('patternSize'),
                     baseColor: this._regl.prop('baseColor'),
                     secondaryColor: this._regl.prop('secondaryColor'),
                     highlightColor: this._regl.prop('highlightColor')
@@ -362,6 +436,8 @@ class PieChart3D extends React.PureComponent {
                         start: start,
                         end: end,
                         highlight: motionExtraRadius / this._sliceExtraRadius,
+                        patternIndex: index % 4,
+                        patternSize: this._patternSize,
                         baseColor: baseColor,
                         secondaryColor: secondaryColor,
                         highlightColor: highlightColor
