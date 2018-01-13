@@ -193,6 +193,8 @@ class PieChart3D extends React.PureComponent {
             const quadList = Array(...new Array(quadCount));
             const quadAngle = value * 2 * Math.PI / quadCount;
 
+            const quadSpanFraction = 2 * Math.sin(quadAngle / 2);
+
             quadList.forEach((v, quadIndex) => {
                 content3d[`
                     translate3d(0, 0, ${height}px)
@@ -227,6 +229,21 @@ class PieChart3D extends React.PureComponent {
                         `
                     }} />
                 </div>;
+
+                content3d[`
+                    rotate(${start + quadIndex * quadAngle}rad)
+                    translate3d(250px, 0, 0)
+                    rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
+                    rotateX(-90deg)
+                    scale(${quadSpanFraction}, ${height / 100})
+                `] = <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '250px',
+                    height: '100px',
+                    background: 'rgba(255, 255, 0, 0.2)'
+                }} />
             });
         });
 
