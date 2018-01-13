@@ -41,6 +41,11 @@ class PieChart3D extends React.PureComponent {
         this._width = width;
         this._height = height;
 
+        this._chartRadius = 250;
+        this._chartInnerRadius = 100;
+        this._chartSliceHeightMin = 10;
+        this._chartSliceHeightMax = 90;
+
         this._regl = null; // initialized after first render
     }
 
@@ -180,6 +185,9 @@ class PieChart3D extends React.PureComponent {
         const secondaryColor = hex2vector(this.props.secondaryColor);
         const highlightColor = hex2vector(this.props.highlightColor);
 
+        const sliceHeightRange = this._chartSliceHeightMax - this._chartSliceHeightMin;
+        const sliceHeightIncrement = sliceHeightRange / Math.max(1, this._values.length - 1);
+
         const content3d = {};
 
         let sliceStartAccumulator = -0.2;
@@ -187,7 +195,7 @@ class PieChart3D extends React.PureComponent {
             const start = sliceStartAccumulator * 2 * Math.PI;
             sliceStartAccumulator += value;
 
-            const height = 10 + index * 8;
+            const height = this._chartSliceHeightMin + index * sliceHeightIncrement;
 
             const quadCount = Math.ceil(value * 12);
             const quadList = Array(...new Array(quadCount));
@@ -204,8 +212,8 @@ class PieChart3D extends React.PureComponent {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    width: '250px',
-                    height: '250px',
+                    width: `${this._chartRadius}px`,
+                    height: `${this._chartRadius}px`,
                     overflow: 'hidden',
 
                     // rotate to quad angle and shear to have the needed corner angle
@@ -220,7 +228,7 @@ class PieChart3D extends React.PureComponent {
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`,
+                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`, // @todo remove
 
                         // shear to be clipped into a triangle
                         transformOrigin: '0 0',
@@ -232,7 +240,7 @@ class PieChart3D extends React.PureComponent {
 
                 content3d[`
                     rotate(${start + quadIndex * quadAngle}rad)
-                    translate3d(250px, 0, 0)
+                    translate3d(${this._chartRadius}px, 0, 0)
                     rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
                     rotateX(-90deg)
                     scale(${quadSpanFraction}, ${height / 100})
@@ -240,9 +248,9 @@ class PieChart3D extends React.PureComponent {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    width: '250px',
+                    width: `${this._chartRadius}px`,
                     height: '100px',
-                    background: 'rgba(255, 255, 0, 0.2)'
+                    background: 'rgba(255, 255, 0, 0.2)' // @todo remove
                 }} />
             });
         });
@@ -250,7 +258,7 @@ class PieChart3D extends React.PureComponent {
         return <Chart3DScene
             viewportWidth={this._width}
             viewportHeight={this._height}
-            distance={1200}
+            distance={this._chartRadius * 4.8}
             centerX={0}
             centerY={0}
             centerZ={80}
@@ -275,9 +283,9 @@ class PieChart3D extends React.PureComponent {
 
                     this._sliceCommandList[index]({
                         camera: cameraMat4,
-                        radius: 100,
-                        width: 150,
-                        height: 10 + motion.start * index * 8,
+                        radius: this._chartInnerRadius,
+                        width: this._chartRadius - this._chartInnerRadius,
+                        height: this._chartSliceHeightMin + index * sliceHeightIncrement * motion.start,
                         start: start,
                         end: end,
                         highlight: 0,
