@@ -45,6 +45,7 @@ class PieChart3D extends React.PureComponent {
         this._chartInnerRadius = 100;
         this._chartSliceHeightMin = 10;
         this._chartSliceHeightMax = 90;
+        this._startOffset = -0.2; // fraction of whole circle
 
         this._regl = null; // initialized after first render
     }
@@ -190,11 +191,10 @@ class PieChart3D extends React.PureComponent {
 
         const content3d = {};
 
-        let sliceStartAccumulator = -0.2;
-        this._values.forEach((value, index) => {
-            const start = sliceStartAccumulator * 2 * Math.PI;
-            sliceStartAccumulator += value;
+        this._values.reduce((start, value, index) => {
+            const end = start + value;
 
+            const startAngle = start * 2 * Math.PI;
             const height = this._chartSliceHeightMin + index * sliceHeightIncrement;
 
             const quadCount = Math.ceil(value * 12);
@@ -206,7 +206,7 @@ class PieChart3D extends React.PureComponent {
             quadList.forEach((v, quadIndex) => {
                 content3d[`
                     translate3d(0, 0, ${height}px)
-                    rotate(${start + quadIndex * quadAngle}rad)
+                    rotate(${startAngle + quadIndex * quadAngle}rad)
                     scale(1, -1)
                 `] = <div style={{
                     position: 'absolute',
@@ -239,7 +239,7 @@ class PieChart3D extends React.PureComponent {
                 </div>;
 
                 content3d[`
-                    rotate(${start + quadIndex * quadAngle}rad)
+                    rotate(${startAngle + quadIndex * quadAngle}rad)
                     translate3d(${this._chartRadius}px, 0, 0)
                     rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
                     rotateX(-90deg)
@@ -253,7 +253,10 @@ class PieChart3D extends React.PureComponent {
                     background: 'rgba(255, 255, 0, 0.2)' // @todo remove
                 }} />
             });
-        });
+
+            // set up next start
+            return end;
+        }, this._startOffset);
 
         return <Chart3DScene
             viewportWidth={this._width}
@@ -277,7 +280,8 @@ class PieChart3D extends React.PureComponent {
                     return null;
                 }
 
-                // sample slice
+                // render slices
+                // @todo sort out how the ReGL framebuffer clearing works with react-motion framerate
                 this._values.reduce((start, value, index) => {
                     const end = start + value;
 
@@ -296,7 +300,7 @@ class PieChart3D extends React.PureComponent {
 
                     // set up next start
                     return end;
-                }, -0.2);
+                }, this._startOffset);
 
                 // no element actually displayed
                 return null;

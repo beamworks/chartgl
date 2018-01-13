@@ -354,6 +354,7 @@ class BarChart3D extends React.PureComponent {
 
                     vec2.set(this._barBaseVec2, (index * barCellSize) + startX, barRadius - 40);
 
+                    // @todo sort out how the ReGL framebuffer clearing works with react-motion framerate
                     this._barCommand({
                         camera: cameraMat4,
                         base: this._barBaseVec2,
