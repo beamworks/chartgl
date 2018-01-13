@@ -251,8 +251,25 @@ class PieChart3D extends React.PureComponent {
                     width: `${this._chartRadius}px`,
                     height: '100px',
                     background: 'rgba(255, 255, 0, 0.2)' // @todo remove
-                }} />
+                }} />;
             });
+
+            // side wall
+            if (index > 0) {
+                content3d[`
+                    rotate(${startAngle}rad)
+                    translate3d(0, 0, ${height - sliceHeightIncrement}px)
+                    rotateX(-90deg)
+                    scale(1, ${sliceHeightIncrement / 100})
+                `] = <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: `${this._chartRadius}px`,
+                    height: '100px',
+                    background: 'rgba(0, 0, 255, 0.2)' // @todo remove
+                }} />;
+            }
 
             // set up next start
             return end;
