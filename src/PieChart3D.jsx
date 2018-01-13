@@ -47,6 +47,7 @@ class PieChart3D extends React.PureComponent {
         this._chartSliceHeightMin = 10;
         this._chartSliceHeightMax = 90;
         this._startOffset = -0.2; // fraction of whole circle
+        this._sliceExtraRadius = this._chartRadius * 0.06;
 
         this._regl = null; // initialized after first render
     }
@@ -203,13 +204,25 @@ class PieChart3D extends React.PureComponent {
 
         const content3d = {};
 
+        // animation setup (as single instance to help render scene in one shot)
+        const motionDefaultStyle = {};
+        const motionStyle = {};
+
         this._values.reduce((start, value, index) => {
             const end = start + value;
-
-            const highlight = this.state.sliceIsActive[index] ? 0.8 : 0.2;
+            const isActive = this.state.sliceIsActive[index];
 
             const startAngle = start * 2 * Math.PI;
             const height = this._chartSliceHeightMin + index * sliceHeightIncrement;
+
+            motionDefaultStyle[`h${index}`] = this._chartSliceHeightMin;
+            motionStyle[`h${index}`] = spring(height, { stiffness: 320, damping: 12 });
+
+            motionDefaultStyle[`r${index}`] = 0;
+            motionStyle[`r${index}`] = spring(
+                isActive ? this._sliceExtraRadius : 0, // @todo just animate in 0..1 range
+                { stiffness: 600, damping: 18 }
+            );
 
             const quadCount = Math.ceil(value * 12);
             const quadList = Array(...new Array(quadCount));
@@ -250,7 +263,6 @@ class PieChart3D extends React.PureComponent {
                             left: 0,
                             width: '100%',
                             height: '100%',
-                            background: `rgba(0, 0, 0, ${highlight})`, // @todo remove
 
                             // shear to be clipped into a triangle
                             transformOrigin: '0 0',
@@ -280,8 +292,7 @@ class PieChart3D extends React.PureComponent {
                             top: 0,
                             left: 0,
                             width: `${this._chartRadius}px`,
-                            height: '100px',
-                            background: `rgba(48, 0, 0, ${highlight})` // @todo remove
+                            height: '100px'
                         }}
                         onMouseEnter={() => { this._setSliceIsActive(index, true); }}
                         onMouseLeave={() => { this._setSliceIsActive(index, false); }}
@@ -303,8 +314,7 @@ class PieChart3D extends React.PureComponent {
                         top: 0,
                         left: 0,
                         width: `${this._chartRadius}px`,
-                        height: '100px',
-                        background: `rgba(0, 0, 255, ${highlight})` // @todo remove
+                        height: '100px'
                     }}
                     onMouseEnter={() => { this._setSliceIsActive(index, true); }}
                     onMouseLeave={() => { this._setSliceIsActive(index, false); }}
@@ -330,8 +340,8 @@ class PieChart3D extends React.PureComponent {
             left: 0
         }}>
             <Motion
-                defaultStyle={{ start: 0 }}
-                style={{ start: spring(1, { stiffness: 320, damping: 15 }) }}
+                defaultStyle={motionDefaultStyle}
+                style={motionStyle}
             >{motion => {
                 if (!this._regl) {
                     return null;
@@ -341,15 +351,17 @@ class PieChart3D extends React.PureComponent {
                 // @todo sort out how the ReGL framebuffer clearing works with react-motion framerate
                 this._values.reduce((start, value, index) => {
                     const end = start + value;
+                    const motionHeight = motion[`h${index}`];
+                    const motionExtraRadius = motion[`r${index}`];
 
                     this._sliceCommandList[index]({
                         camera: cameraMat4,
-                        radius: this._chartInnerRadius,
-                        width: this._chartRadius - this._chartInnerRadius,
-                        height: this._chartSliceHeightMin + index * sliceHeightIncrement * motion.start,
+                        radius: this._chartInnerRadius - motionExtraRadius * 0.5,
+                        width: this._chartRadius - this._chartInnerRadius + motionExtraRadius,
+                        height: motionHeight,
                         start: start,
                         end: end,
-                        highlight: 0,
+                        highlight: motionExtraRadius / this._sliceExtraRadius,
                         baseColor: baseColor,
                         secondaryColor: secondaryColor,
                         highlightColor: highlightColor
