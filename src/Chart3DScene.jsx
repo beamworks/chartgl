@@ -49,6 +49,7 @@ class Chart3DScene extends React.PureComponent {
 
             <div style={{
                 position: 'absolute',
+                zIndex: 0, // reset stacking context
                 top: 0,
                 left: 0,
                 width: 0,

@@ -35,6 +35,7 @@ class PieChart3D extends React.PureComponent {
         }
 
         this.state = {
+            sliceIsActive: this._values.map(() => false),
             graphicsInitialized: false
         };
 
@@ -48,6 +49,17 @@ class PieChart3D extends React.PureComponent {
         this._startOffset = -0.2; // fraction of whole circle
 
         this._regl = null; // initialized after first render
+    }
+
+    _setSliceIsActive(index, status) {
+        // reduce bar status state into new instance
+        this.setState(state => ({
+            sliceIsActive: [].concat(
+                state.sliceIsActive.slice(0, index),
+                [ !!status ],
+                state.sliceIsActive.slice(index + 1)
+            )
+        }));
     }
 
     _handleCanvasRef = (canvas) => {
@@ -194,6 +206,8 @@ class PieChart3D extends React.PureComponent {
         this._values.reduce((start, value, index) => {
             const end = start + value;
 
+            const highlight = this.state.sliceIsActive[index] ? 0.8 : 0.2;
+
             const startAngle = start * 2 * Math.PI;
             const height = this._chartSliceHeightMin + index * sliceHeightIncrement;
 
@@ -216,6 +230,7 @@ class PieChart3D extends React.PureComponent {
                     scale(1, -1)
                 `] = <div style={{
                     position: 'absolute',
+                    zIndex: index,
                     top: 0,
                     left: 0,
                     width: `${this._chartRadius}px`,
@@ -228,20 +243,24 @@ class PieChart3D extends React.PureComponent {
                         matrix(1, 0, ${Math.cos(quadAngle)}, ${Math.sin(quadAngle)}, 0, 0)
                     `
                 }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background: `rgba(0, 0, 0, ${0.1 + index * 0.1})`, // @todo remove
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            background: `rgba(0, 0, 0, ${highlight})`, // @todo remove
 
-                        // shear to be clipped into a triangle
-                        transformOrigin: '0 0',
-                        transform: `
-                            matrix(1, 0, -1, 1, 0, 0)
-                        `
-                    }} />
+                            // shear to be clipped into a triangle
+                            transformOrigin: '0 0',
+                            transform: `
+                                matrix(1, 0, -1, 1, 0, 0)
+                            `
+                        }}
+                        onMouseEnter={() => { this._setSliceIsActive(index, true); }}
+                        onMouseLeave={() => { this._setSliceIsActive(index, false); }}
+                    />
                 </div>;
 
                 const quadNormAngle = (quadStartAngle + quadAngle * 0.5 + 2 * Math.PI + cameraOrbit) % (2 * Math.PI);
@@ -254,14 +273,19 @@ class PieChart3D extends React.PureComponent {
                         rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
                         rotateX(-90deg)
                         scale(${quadSpanFraction}, ${height / 100})
-                    `] = <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: `${this._chartRadius}px`,
-                        height: '100px',
-                        background: 'rgba(48, 0, 0, 0.8)' // @todo remove
-                    }} />;
+                    `] = <div
+                        style={{
+                            position: 'absolute',
+                            zIndex: index,
+                            top: 0,
+                            left: 0,
+                            width: `${this._chartRadius}px`,
+                            height: '100px',
+                            background: `rgba(48, 0, 0, ${highlight})` // @todo remove
+                        }}
+                        onMouseEnter={() => { this._setSliceIsActive(index, true); }}
+                        onMouseLeave={() => { this._setSliceIsActive(index, false); }}
+                    />;
                 }
             });
 
@@ -272,14 +296,19 @@ class PieChart3D extends React.PureComponent {
                     translate3d(0, 0, ${height - sliceHeightIncrement}px)
                     rotateX(-90deg)
                     scale(1, ${sliceHeightIncrement / 100})
-                `] = <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: `${this._chartRadius}px`,
-                    height: '100px',
-                    background: 'rgba(0, 0, 255, 0.2)' // @todo remove
-                }} />;
+                `] = <div
+                    style={{
+                        position: 'absolute',
+                        zIndex: index,
+                        top: 0,
+                        left: 0,
+                        width: `${this._chartRadius}px`,
+                        height: '100px',
+                        background: `rgba(0, 0, 255, ${highlight})` // @todo remove
+                    }}
+                    onMouseEnter={() => { this._setSliceIsActive(index, true); }}
+                    onMouseLeave={() => { this._setSliceIsActive(index, false); }}
+                />;
             }
 
             // set up next start
