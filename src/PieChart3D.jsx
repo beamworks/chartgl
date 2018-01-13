@@ -203,10 +203,16 @@ class PieChart3D extends React.PureComponent {
 
             const quadSpanFraction = 2 * Math.sin(quadAngle / 2);
 
+            const cameraOrbit = Math.PI / 6; // @todo bring this in from scene component
+            const normAngle = (startAngle + 2 * Math.PI + cameraOrbit) % (2 * Math.PI);
+            const sideWallIsVisible = (normAngle > Math.PI * 1.5 || normAngle < Math.PI * 0.5);
+
             quadList.forEach((v, quadIndex) => {
+                const quadStartAngle = startAngle + quadIndex * quadAngle;
+
                 content3d[`
                     translate3d(0, 0, ${height}px)
-                    rotate(${startAngle + quadIndex * quadAngle}rad)
+                    rotate(${quadStartAngle}rad)
                     scale(1, -1)
                 `] = <div style={{
                     position: 'absolute',
@@ -238,24 +244,29 @@ class PieChart3D extends React.PureComponent {
                     }} />
                 </div>;
 
-                content3d[`
-                    rotate(${startAngle + quadIndex * quadAngle}rad)
-                    translate3d(${this._chartRadius}px, 0, 0)
-                    rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
-                    rotateX(-90deg)
-                    scale(${quadSpanFraction}, ${height / 100})
-                `] = <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: `${this._chartRadius}px`,
-                    height: '100px',
-                    background: 'rgba(255, 255, 0, 0.2)' // @todo remove
-                }} />;
+                const quadNormAngle = (quadStartAngle + quadAngle * 0.5 + 2 * Math.PI + cameraOrbit) % (2 * Math.PI);
+                const outerWallIsVisible = (quadNormAngle > Math.PI);
+
+                if (outerWallIsVisible) {
+                    content3d[`
+                        rotate(${quadStartAngle}rad)
+                        translate3d(${this._chartRadius}px, 0, 0)
+                        rotateZ(${Math.PI / 2 + quadAngle / 2}rad)
+                        rotateX(-90deg)
+                        scale(${quadSpanFraction}, ${height / 100})
+                    `] = <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: `${this._chartRadius}px`,
+                        height: '100px',
+                        background: 'rgba(48, 0, 0, 0.8)' // @todo remove
+                    }} />;
+                }
             });
 
             // side wall
-            if (index > 0) {
+            if (index > 0 && sideWallIsVisible) {
                 content3d[`
                     rotate(${startAngle}rad)
                     translate3d(0, 0, ${height - sliceHeightIncrement}px)
