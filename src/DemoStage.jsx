@@ -140,12 +140,9 @@ class DemoStage extends React.PureComponent {
             ? Math.floor(Math.random() * colorPalettes.length)
             : 1;
 
-        const pieRawData = Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random());
-        const pieSum = pieRawData.reduce((sum, value) => sum + value, 0);
-
         this.setState({
             series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
-            pieSeries: pieRawData.map(value => value / pieSum),
+            pieSeries: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
             palette: colorPalettes[paletteIndex],
             version: this.state.version + 1
         });

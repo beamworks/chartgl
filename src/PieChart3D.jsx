@@ -25,17 +25,12 @@ class PieChart3D extends React.PureComponent {
     }) {
         super();
 
-        // copy value array and coerce to 0..1
-        this._values = [].concat(values).map(
-            value => Math.max(0, Math.min(1, value)) || 0
-        );
-
-        if (this._values.length < 1) {
+        if (values.length < 1) {
             throw new Error('missing values');
         }
 
         this.state = {
-            sliceIsActive: this._values.map(() => false),
+            sliceIsActive: values.map(() => false),
             graphicsInitialized: false
         };
 
@@ -49,6 +44,14 @@ class PieChart3D extends React.PureComponent {
         this._startOffset = -0.2; // fraction of whole circle
         this._sliceExtraRadius = this._chartRadius * 0.06;
         this._patternSize = 50;
+        this._spacingFraction = 0.02; // spacing between slices
+
+        // copy value array, coerce to number and normalize with spacing in mind
+        const valueList = [].concat(values).map(value => value * 1 || 0);
+        const valuesSum = valueList.reduce((sum, value) => sum + value, 0);
+        const valuesPaddedRatio = 1 + values.length * this._spacingFraction;
+
+        this._values = valueList.map(value => (value / valuesSum + this._spacingFraction) / valuesPaddedRatio);
 
         this._regl = null; // initialized after first render
     }
@@ -90,7 +93,7 @@ class PieChart3D extends React.PureComponent {
 
                     uniform mat4 camera;
                     uniform float radius, width, height;
-                    uniform float start, end;
+                    uniform float start, end, spacing;
 
                     attribute vec3 position;
                     attribute vec3 normal;
@@ -99,7 +102,9 @@ class PieChart3D extends React.PureComponent {
                     varying vec3 fragNormal;
 
                     void main() {
-                        float azimuth = 2.0 * M_PI * (start + (end - start) * position.y);
+                        float scaledPadding = spacing * mix(1.0, radius / (radius + width), position.x);
+                        float azimuth = 2.0 * M_PI * (start + (end - start) * position.y - scaledPadding * (position.y - 0.5));
+
                         float sinA = sin(azimuth);
                         float cosA = cos(azimuth);
 
@@ -247,6 +252,7 @@ class PieChart3D extends React.PureComponent {
                     height: this._regl.prop('height'),
                     start: this._regl.prop('start'),
                     end: this._regl.prop('end'),
+                    spacing: this._regl.prop('spacing'),
                     highlight: this._regl.prop('highlight'),
                     patternIndex: this._regl.prop('patternIndex'),
                     patternSize: this._regl.prop('patternSize'),
@@ -413,6 +419,7 @@ class PieChart3D extends React.PureComponent {
                         height: motionHeight,
                         start: start,
                         end: end,
+                        spacing: this._spacingFraction,
                         highlight: motionExtraRadius / this._sliceExtraRadius,
                         patternIndex: index % 4,
                         patternSize: this._patternSize,
