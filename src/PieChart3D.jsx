@@ -393,14 +393,11 @@ class PieChart3D extends React.PureComponent {
             top: 0,
             left: 0
         }}>
-            <Motion
+            {/* animate when ready to render */}
+            {this.state.graphicsInitialized ? <Motion
                 defaultStyle={motionDefaultStyle}
                 style={motionStyle}
             >{motion => {
-                if (!this._regl) {
-                    return null;
-                }
-
                 // general rendering refresh
                 this._regl.poll();
 
@@ -439,7 +436,7 @@ class PieChart3D extends React.PureComponent {
 
                 // no element actually displayed
                 return null;
-            }}</Motion>
+            }}</Motion> : null}
         </div>}</Chart3DScene>;
     }
 }
