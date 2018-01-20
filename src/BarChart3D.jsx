@@ -236,10 +236,6 @@ class BarChart3D extends React.PureComponent {
             count: 4 + 2 + 4 + 2 + 4
         });
 
-        this._regl.clear({
-            depth: 1
-        });
-
         this.setState({ graphicsInitialized: true });
     }
 
@@ -346,6 +342,15 @@ class BarChart3D extends React.PureComponent {
                 if (!this._regl) {
                     return null;
                 }
+
+                // general rendering refresh
+                this._regl.poll();
+
+                // clear canvas
+                // @todo set colour?
+                this._regl.clear({
+                    depth: 1
+                });
 
                 // chart bar display
                 this._values.forEach((value, index) => {

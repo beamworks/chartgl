@@ -266,10 +266,6 @@ class PieChart3D extends React.PureComponent {
             });
         });
 
-        this._regl.clear({
-            depth: 1
-        });
-
         this.setState({ graphicsInitialized: true });
     }
 
@@ -404,6 +400,15 @@ class PieChart3D extends React.PureComponent {
                 if (!this._regl) {
                     return null;
                 }
+
+                // general rendering refresh
+                this._regl.poll();
+
+                // clear canvas
+                // @todo set colour?
+                this._regl.clear({
+                    depth: 1
+                });
 
                 // render slices
                 // @todo sort out how the ReGL framebuffer clearing works with react-motion framerate
