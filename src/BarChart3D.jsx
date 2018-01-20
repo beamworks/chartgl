@@ -371,6 +371,9 @@ class BarChart3D extends React.PureComponent {
                     });
                 });
 
+                // manually flush
+                this._regl._gl.flush();
+
                 // no element actually displayed
                 return null;
             }}</Motion> : null}

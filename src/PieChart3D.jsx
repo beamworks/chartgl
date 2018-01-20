@@ -434,6 +434,9 @@ class PieChart3D extends React.PureComponent {
                     return end;
                 }, this._startOffset);
 
+                // manually flush
+                this._regl._gl.flush();
+
                 // no element actually displayed
                 return null;
             }}</Motion> : null}
