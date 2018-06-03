@@ -2,15 +2,11 @@ import colorPalettes from 'nice-color-palettes';
 import React from 'react';
 import { Motion, spring } from 'react-motion';
 
+import Carousel from './Carousel.jsx';
 import BarChart3D from './BarChart3D.jsx';
 import PieChart3D from './PieChart3D.jsx';
-import boopUrl from './boop.wav';
 import bumpUrl from './bump.wav';
 import chirpUrl from './chirp.wav';
-
-const boopSound = new Howl({
-    src: [ boopUrl ]
-});
 
 const bumpSound = new Howl({
     src: [ bumpUrl ],
@@ -87,6 +83,19 @@ const mockIndustryList = [
     'Trucking'
 ];
 
+// credit: https://gist.github.com/blixt/f17b47c62508be59987b
+const SEED_OFFSET = new Date().getTime();
+
+function randomize(seed) {
+    const intSeed = seed % 2147483647;
+    const safeSeed = intSeed > 0 ? intSeed : intSeed + 2147483646;
+    return safeSeed * 16807 % 2147483647;
+}
+
+function getRandomizedFraction(seed) {
+    return (seed - 1) / 2147483646;
+}
+
 class BumpSound extends React.PureComponent {
     componentWillMount() {
         bumpSound.play();
@@ -100,109 +109,102 @@ class BumpSound extends React.PureComponent {
     }
 }
 
-class DemoStage extends React.PureComponent {
-    constructor() {
+class RandomChart extends React.PureComponent {
+    constructor(props) {
         super();
 
-        this.state = {
-            series: [],
-            resetButtonZoom: 100,
-            version: 0
-        };
-    }
+        // seeded random generation for predictable results
+        // @todo use pie chart, too
+        const startSeed = randomize(props.position * 150000 + SEED_OFFSET);
+        const random1 = randomize(startSeed);
+        const random2 = randomize(random1);
+        const random3 = randomize(random2);
+        const random4 = randomize(random3);
 
-    componentWillMount() {
-        this._resetChart();
-    }
+        const mode = getRandomizedFraction(random1);
+        const textSelector = getRandomizedFraction(random2);
+        const paletteSelector = getRandomizedFraction(random3);
+        const seriesLengthSelector = getRandomizedFraction(random4);
 
-    _resetChart() {
-        const mode = Math.random();
+        this._textInfo = null;
+
+        this._idNumber = random2 % 100000;
 
         if (mode < 0.2) {
-            this.setState({
-                xLabel: 'CRYPTO: ' + mockCoinList[Math.floor(Math.random() * mockCoinList.length)],
+            this._textInfo = {
+                xLabel: 'CRYPTO: ' + mockCoinList[Math.floor(textSelector * mockCoinList.length)],
                 yLabel: 'PRICE'
-            });
+            };
         } else if (mode < 0.6) {
-            this.setState({
-                xLabel: 'SALES: ' + mockProductList[Math.floor(Math.random() * mockProductList.length)],
+            this._textInfo = {
+                xLabel: 'SALES: ' + mockProductList[Math.floor(textSelector * mockProductList.length)],
                 yLabel: 'VOLUME'
-            });
+            };
         } else {
-            this.setState({
-                xLabel: 'STOCK: ' + mockIndustryList[Math.floor(Math.random() * mockIndustryList.length)],
+            this._textInfo = {
+                xLabel: 'STOCK: ' + mockIndustryList[Math.floor(textSelector * mockIndustryList.length)],
                 yLabel: 'TRADE'
-            });
+            };
         }
 
         // start with default palette at first, then randomize
-        const paletteIndex = this.state.version > 2
-            ? Math.floor(Math.random() * colorPalettes.length)
+        const paletteIndex = Math.abs(props.position) > 2
+            ? Math.floor(paletteSelector * colorPalettes.length)
             : 1;
+        this._palette = colorPalettes[paletteIndex];
 
-        this.setState({
-            series: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
-            pieSeries: Array(...new Array(3 + Math.floor(Math.random() * 10))).map(() => Math.random()),
-            palette: colorPalettes[paletteIndex],
-            version: this.state.version + 1
-        });
+        this._series = Array(...new Array(3 + Math.floor(seriesLengthSelector * 10))).reduce(
+            (itemSeedList) => {
+                const prevSeed = itemSeedList.length > 0 ? itemSeedList[itemSeedList.length - 1] : random4;
+                return itemSeedList.concat([ randomize(prevSeed) ]);
+            },
+            []
+        ).map(itemSeed => getRandomizedFraction(itemSeed));
+
+        this.state = {
+            isWarmedUp: !!props.inView
+        };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // one-time trigger for "warmed-up" state to start heavy main animation
+        if (nextProps.inView) {
+            this.setState({
+                isWarmedUp: true
+            });
+        }
     }
 
     render() {
-        document.body.style.background = this.state.palette[0];
+        // update body background
+        if (this.props.active) {
+            document.body.style.background = this._palette[0];
+        }
 
         return <div style={{
-            display: 'inline-block'
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
         }}>
-            <Motion
-                defaultStyle={{ zoom: 100 }}
-                style={{
-                    zoom: spring(this.state.resetButtonZoom, { stiffness: 800, damping: 15 })
-                }}
-            >{({ zoom }) => <button
-                type="button"
-                style={{
-                    display: 'block',
-                    margin: '0 auto 30px',
-                    width: '200px',
-                    height: '60px',
-                    border: '0',
-                    padding: '0 0 5px',
-                    borderRadius: '3px',
-                    background: 'rgba(255, 255, 255, 0.3)',
-                    color: '#fff',
-                    textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '24px',
-                    transform: `scale(${(100 - 0.5 * (zoom - 100)) / 100}, ${zoom / 100})`,
-                    outline: 'none', // @todo this breaks accessibility
-                    cursor: 'pointer'
-                }}
-                onClick={() => {
-                    this._resetChart();
+            <div style={{
+                fontFamily: 'Michroma, Arial, sans-serif',
+                fontSize: '24px',
+                color: this._palette[1]
+            }}>Chart #{this._idNumber}</div>
 
-                    // enlarge and then reset back to normal
-                    this.setState({ resetButtonZoom: 120 });
-
-                    setTimeout(() => {
-                        this.setState({ resetButtonZoom: 100 });
-                    }, 100);
-
-                    boopSound.play();
-                }}
-            >Generate</button>}</Motion>
-
-            <BarChart3D
-                key={this.state.version}
-                values={this.state.series}
+            {!this.state.isWarmedUp ? <div style={{
+                height: '480px', // match chart height
+                color: this._palette[1]
+            }}>...</div> : <BarChart3D
+                values={this._series}
                 width={640}
                 height={480}
-                xLabel={this.state.xLabel}
-                yLabel={this.state.yLabel}
-                baseColor={this.state.palette[3]}
-                secondaryColor={this.state.palette[4]}
-                highlightColor={this.state.palette[2]}
-                labelColor={this.state.palette[1]}
+                xLabel={this._textInfo.xLabel}
+                yLabel={this._textInfo.yLabel}
+                baseColor={this._palette[3]}
+                secondaryColor={this._palette[4]}
+                highlightColor={this._palette[2]}
+                labelColor={this._palette[1]}
                 renderBar={(index, isActive) => isActive ? <BumpSound>
                     <span style={{
                         position: 'absolute',
@@ -223,28 +225,36 @@ class DemoStage extends React.PureComponent {
                             borderRight: '8px solid transparent',
                             borderTop: '8px solid rgba(255, 255, 255, 0.9)'
                         }} />
-                        {'0.' + Math.floor(100 + this.state.series[index] * 100).toString().slice(-2)}
+                        {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
                     </span>
                 </BumpSound> : null}
                 onBarClick={() => {
                     chirpSound.play();
                 }}
-            />
+            />}
+        </div>;
+    }
+}
 
-            <div
-                style={{
-                    display: 'block'
-                }}
-            />
+class DemoStage extends React.PureComponent {
+    constructor() {
+        super();
+    }
 
-            <PieChart3D
-                key={this.state.version + 1}
-                values={this.state.pieSeries}
-                width={640}
-                height={480}
-                baseColor={this.state.palette[3]}
-                secondaryColor={this.state.palette[4]}
-                highlightColor={this.state.palette[2]}
+    render() {
+        return <div style={{
+            display: 'inline-block'
+        }}>
+            <Carousel
+                renderItem={(position, isActive, isInView) => <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%'
+                }}>
+                    <RandomChart position={position} active={isActive} inView={isInView} />
+                </div>}
             />
 
             <div
