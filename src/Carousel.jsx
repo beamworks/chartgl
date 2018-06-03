@@ -5,6 +5,12 @@ import FaAngleRight from 'react-icons/lib/fa/angle-right';
 
 import Wobbler from './Wobbler.jsx';
 
+import boopUrl from './boop.wav';
+
+const boopSound = new Howl({
+    src: [ boopUrl ]
+});
+
 class Carousel extends React.PureComponent {
     constructor() {
         super();
@@ -18,6 +24,7 @@ class Carousel extends React.PureComponent {
         this.state = {
             displayedCaretPosition: 0,
             caretPosition: 0,
+            stablePosition: 0,
             positionMin: 0,
             positionMax: 0
         };
@@ -45,7 +52,12 @@ class Carousel extends React.PureComponent {
 
     _settleMotion() {
         // clobber all non-displayed items once animation is done
+        // and mark the displayed position as "stable"
+        // @todo sometimes onRest does not report correctly? looks like item is shown as stable before it comes to rest
+        // @todo trigger stablePosition earlier, but avoid clearing the stable flag for items not yet unmounted
+        // @todo perhaps instead let another place debounce that, and report "in-view" as flag
         this.setState({
+            stablePosition: this.state.caretPosition,
             positionMin: this.state.caretPosition,
             positionMax: this.state.caretPosition
         });
@@ -66,16 +78,19 @@ class Carousel extends React.PureComponent {
                     bottom: 0,
                     left: `${position * this._itemSpacing - caretX}px`,
                     width: `${this._itemWidth}px`,
-                    marginLeft: `${-(this._itemWidth) / 2}px`,
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    borderRadius: '3px'
+                    marginLeft: `${-(this._itemWidth) / 2}px`
                 }}
-            ></div>)}
+            >
+                {this.props.renderItem(
+                    position,
+                    position === this.state.caretPosition,
+                    position === this.state.stablePosition
+                )}
+            </div>)}
         </React.Fragment>;
     }
 
     _renderNavButton(delta, icon) {
-        // @todo sound
         return <Wobbler
             size={100}
             activeSize={120}
@@ -102,6 +117,7 @@ class Carousel extends React.PureComponent {
             this._startIntent(delta);
 
             triggerWobble();
+            boopSound.play();
         }}>
             {icon}
         </button>}</Wobbler>;
@@ -129,7 +145,7 @@ class Carousel extends React.PureComponent {
                     <Motion
                         defaultStyle={{ caretX: this.state.displayedCaretPosition * this._itemSpacing }}
                         style={{
-                            caretX: spring(this.state.displayedCaretPosition * this._itemSpacing, { stiffness: 600, damping: 25 })
+                            caretX: spring(this.state.displayedCaretPosition * this._itemSpacing, { stiffness: 600, damping: 25, precision: 20 })
                         }}
                         onRest={() => this._settleMotion()}
                     >{({ caretX }) => this._renderItems(caretX)}</Motion>
