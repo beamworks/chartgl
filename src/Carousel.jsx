@@ -3,12 +3,14 @@ import { Motion, spring } from 'react-motion';
 import FaAngleLeft from 'react-icons/lib/fa/angle-left';
 import FaAngleRight from 'react-icons/lib/fa/angle-right';
 
+import Wobbler from './Wobbler.jsx';
+
 class Carousel extends React.PureComponent {
     constructor() {
         super();
 
-        this._itemWidth = 800;
-        this._itemSpacing = this._itemWidth + 20;
+        this._itemWidth = 800 - 20;
+        this._itemSpacing = this._itemWidth + 40;
 
         this._renderedPositionMin = 0;
         this._renderedPositionMax = 0;
@@ -72,6 +74,39 @@ class Carousel extends React.PureComponent {
         </React.Fragment>;
     }
 
+    _renderNavButton(delta, icon) {
+        // @todo sound
+        return <Wobbler
+            size={100}
+            activeSize={120}
+            stiffness={800}
+            damping={15}
+        >{(size, triggerWobble) => <button style={{
+            display: 'flex',
+            justifyContent: 'center',
+            width: '80px',
+            margin: '10px 10px', // extra vertical space for wobble to not get cut off
+            padding: '15px 0',
+            background: 'rgba(255, 255, 255, 0.3)',
+            transform: `scale(${(100 + 0.5 * (size - 100)) / 100}, ${100 / size})`,
+            transformOrigin: delta < 0 ? '120% 50%' : '-20% 50%',
+            border: 0,
+            borderRadius: '3px',
+            outline: 0, // @todo a11y
+            color: '#fff',
+            textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
+            fontFamily: 'Michroma, Arial, sans-serif',
+            fontSize: '24px',
+            cursor: 'pointer'
+        }} onClick={() => {
+            this._startIntent(delta);
+
+            triggerWobble();
+        }}>
+            {icon}
+        </button>}</Wobbler>;
+    }
+
     render() {
         return <div style={{
             display: 'inline-block',
@@ -102,43 +137,8 @@ class Carousel extends React.PureComponent {
                 <div style={{
                     display: 'flex'
                 }}>
-                    {/* @todo wobble */}
-                    <button style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '80px',
-                        margin: '0 10px',
-                        padding: '15px 0',
-                        background: 'rgba(255, 255, 255, 0.3)',
-                        border: 0,
-                        borderRadius: '3px',
-                        outline: 0, // @todo a11y
-                        color: '#fff',
-                        textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
-                        fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '24px',
-                        cursor: 'pointer'
-                    }} onClick={() => this._startIntent(-1)}>
-                        <FaAngleLeft />
-                    </button>
-                    <button style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '80px',
-                        margin: '0 10px',
-                        padding: '15px 0',
-                        background: 'rgba(255, 255, 255, 0.3)',
-                        border: 0,
-                        borderRadius: '3px',
-                        outline: 0, // @todo a11y
-                        color: '#fff',
-                        textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
-                        fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '24px',
-                        cursor: 'pointer'
-                    }} onClick={() => this._startIntent(1)}>
-                        <FaAngleRight />
-                    </button>
+                    {this._renderNavButton(-1, <FaAngleLeft />)}
+                    {this._renderNavButton(1, <FaAngleRight />)}
                 </div>
             </div>
         </div>;
