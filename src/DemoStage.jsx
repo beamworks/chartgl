@@ -2,6 +2,7 @@ import colorPalettes from 'nice-color-palettes';
 import React from 'react';
 import { Motion, spring } from 'react-motion';
 
+import Carousel from './Carousel.jsx';
 import BarChart3D from './BarChart3D.jsx';
 import PieChart3D from './PieChart3D.jsx';
 import boopUrl from './boop.wav';
@@ -192,60 +193,7 @@ class DemoStage extends React.PureComponent {
                 }}
             >Generate</button>}</Motion>
 
-            <BarChart3D
-                key={this.state.version}
-                values={this.state.series}
-                width={640}
-                height={480}
-                xLabel={this.state.xLabel}
-                yLabel={this.state.yLabel}
-                baseColor={this.state.palette[3]}
-                secondaryColor={this.state.palette[4]}
-                highlightColor={this.state.palette[2]}
-                labelColor={this.state.palette[1]}
-                renderBar={(index, isActive) => isActive ? <BumpSound>
-                    <span style={{
-                        position: 'absolute',
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        color: '#444',
-                        padding: '0px 10px 3px', // vertical alignment nudge
-                        borderRadius: '5px',
-                        fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '20px',
-                        transform: 'translate(-50%, -100%) translate(0, -8px)'
-                    }}>
-                        <span style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: '50%',
-                            marginLeft: '-8px',
-                            borderLeft: '8px solid transparent',
-                            borderRight: '8px solid transparent',
-                            borderTop: '8px solid rgba(255, 255, 255, 0.9)'
-                        }} />
-                        {'0.' + Math.floor(100 + this.state.series[index] * 100).toString().slice(-2)}
-                    </span>
-                </BumpSound> : null}
-                onBarClick={() => {
-                    chirpSound.play();
-                }}
-            />
-
-            <div
-                style={{
-                    display: 'block'
-                }}
-            />
-
-            <PieChart3D
-                key={this.state.version + 1}
-                values={this.state.pieSeries}
-                width={640}
-                height={480}
-                baseColor={this.state.palette[3]}
-                secondaryColor={this.state.palette[4]}
-                highlightColor={this.state.palette[2]}
-            />
+            <Carousel />
 
             <div
                 style={{
