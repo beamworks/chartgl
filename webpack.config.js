@@ -26,6 +26,17 @@ module.exports = {
             {
               test: /node_modules[\\\/]gl-matrix[\\\/].*\.js$/,
               loader: 'babel-loader' // built-in babelrc
+            },
+
+            // ES6-based lib
+            {
+                test: /node_modules[\\\/]react-dynamics[\\\/].*\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [ 'babel-preset-env' ]
+                    }
+                }
             }
         ]
     },

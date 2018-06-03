@@ -96,14 +96,13 @@ class Carousel extends React.PureComponent {
             width: '80px',
             margin: '10px 10px', // extra vertical space for wobble to not get cut off
             padding: '15px 0',
-            background: 'rgba(255, 255, 255, 0.3)',
+            background: 'rgba(0, 0, 0, 0.2)',
             transform: `scale(${(100 + 0.5 * (size - 100)) / 100}, ${100 / size})`,
             transformOrigin: delta < 0 ? '120% 50%' : '-20% 50%',
             border: 0,
             borderRadius: '3px',
             outline: 0, // @todo a11y
             color: '#fff',
-            textShadow: '0 1px 6px rgba(0, 0, 0, 0.2)',
             fontFamily: 'Michroma, Arial, sans-serif',
             fontSize: '24px',
             cursor: 'pointer'
