@@ -114,6 +114,7 @@ class RandomChart extends React.PureComponent {
         super();
 
         // seeded random generation for predictable results
+        // @todo use pie chart, too
         const startSeed = randomize(props.position * 150000 + SEED_OFFSET);
         const random1 = randomize(startSeed);
         const random2 = randomize(random1);
@@ -126,6 +127,8 @@ class RandomChart extends React.PureComponent {
         const seriesLengthSelector = getRandomizedFraction(random4);
 
         this._textInfo = null;
+
+        this._idNumber = random2 % 100000;
 
         if (mode < 0.2) {
             this._textInfo = {
@@ -157,6 +160,19 @@ class RandomChart extends React.PureComponent {
             },
             []
         ).map(itemSeed => getRandomizedFraction(itemSeed));
+
+        this.state = {
+            isWarmedUp: !!props.inView
+        };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // one-time trigger for "warmed-up" state to start heavy main animation
+        if (nextProps.inView) {
+            this.setState({
+                isWarmedUp: true
+            });
+        }
     }
 
     render() {
@@ -165,43 +181,58 @@ class RandomChart extends React.PureComponent {
             document.body.style.background = this._palette[0];
         }
 
-        return <BarChart3D
-            values={this._series}
-            width={640}
-            height={480}
-            xLabel={this._textInfo.xLabel}
-            yLabel={this._textInfo.yLabel}
-            baseColor={this._palette[3]}
-            secondaryColor={this._palette[4]}
-            highlightColor={this._palette[2]}
-            labelColor={this._palette[1]}
-            renderBar={(index, isActive) => isActive ? <BumpSound>
-                <span style={{
-                    position: 'absolute',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    color: '#444',
-                    padding: '0px 10px 3px', // vertical alignment nudge
-                    borderRadius: '5px',
-                    fontFamily: 'Michroma, Arial, sans-serif',
-                    fontSize: '20px',
-                    transform: 'translate(-50%, -100%) translate(0, -8px)'
-                }}>
+        return <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+        }}>
+            <div style={{
+                fontFamily: 'Michroma, Arial, sans-serif',
+                fontSize: '24px',
+                color: this._palette[1]
+            }}>Chart #{this._idNumber}</div>
+
+            {!this.state.isWarmedUp ? <div style={{
+                height: '480px', // match chart height
+                color: this._palette[1]
+            }}>...</div> : <BarChart3D
+                values={this._series}
+                width={640}
+                height={480}
+                xLabel={this._textInfo.xLabel}
+                yLabel={this._textInfo.yLabel}
+                baseColor={this._palette[3]}
+                secondaryColor={this._palette[4]}
+                highlightColor={this._palette[2]}
+                labelColor={this._palette[1]}
+                renderBar={(index, isActive) => isActive ? <BumpSound>
                     <span style={{
                         position: 'absolute',
-                        top: '100%',
-                        left: '50%',
-                        marginLeft: '-8px',
-                        borderLeft: '8px solid transparent',
-                        borderRight: '8px solid transparent',
-                        borderTop: '8px solid rgba(255, 255, 255, 0.9)'
-                    }} />
-                    {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
-                </span>
-            </BumpSound> : null}
-            onBarClick={() => {
-                chirpSound.play();
-            }}
-        />;
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        color: '#444',
+                        padding: '0px 10px 3px', // vertical alignment nudge
+                        borderRadius: '5px',
+                        fontFamily: 'Michroma, Arial, sans-serif',
+                        fontSize: '20px',
+                        transform: 'translate(-50%, -100%) translate(0, -8px)'
+                    }}>
+                        <span style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: '50%',
+                            marginLeft: '-8px',
+                            borderLeft: '8px solid transparent',
+                            borderRight: '8px solid transparent',
+                            borderTop: '8px solid rgba(255, 255, 255, 0.9)'
+                        }} />
+                        {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
+                    </span>
+                </BumpSound> : null}
+                onBarClick={() => {
+                    chirpSound.play();
+                }}
+            />}
+        </div>;
     }
 }
 
@@ -215,14 +246,14 @@ class DemoStage extends React.PureComponent {
             display: 'inline-block'
         }}>
             <Carousel
-                renderItem={(position, isActive, isStable) => <div style={{
+                renderItem={(position, isActive, isInView) => <div style={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
                     width: '100%',
                     height: '100%'
                 }}>
-                    {isStable ? <RandomChart position={position} active={isActive} /> : '...'}
+                    <RandomChart position={position} active={isActive} inView={isInView} />
                 </div>}
             />
 

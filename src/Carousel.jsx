@@ -24,7 +24,6 @@ class Carousel extends React.PureComponent {
         this.state = {
             displayedCaretPosition: 0,
             caretPosition: 0,
-            stablePosition: 0,
             positionMin: 0,
             positionMax: 0
         };
@@ -52,12 +51,7 @@ class Carousel extends React.PureComponent {
 
     _settleMotion() {
         // clobber all non-displayed items once animation is done
-        // and mark the displayed position as "stable"
-        // @todo sometimes onRest does not report correctly? looks like item is shown as stable before it comes to rest
-        // @todo trigger stablePosition earlier, but avoid clearing the stable flag for items not yet unmounted
-        // @todo perhaps instead let another place debounce that, and report "in-view" as flag
         this.setState({
-            stablePosition: this.state.caretPosition,
             positionMin: this.state.caretPosition,
             positionMax: this.state.caretPosition
         });
@@ -84,7 +78,7 @@ class Carousel extends React.PureComponent {
                 {this.props.renderItem(
                     position,
                     position === this.state.caretPosition,
-                    position === this.state.stablePosition
+                    Math.abs(position - caretX / this._itemSpacing) < 0.2
                 )}
             </div>)}
         </React.Fragment>;
@@ -126,8 +120,8 @@ class Carousel extends React.PureComponent {
     render() {
         return <div style={{
             display: 'inline-block',
-            width: '800px',
-            height: '600px',
+            width: '700px',
+            height: '620px',
             overflow: 'hidden'
         }}>
             <div style={{
@@ -145,7 +139,7 @@ class Carousel extends React.PureComponent {
                     <Motion
                         defaultStyle={{ caretX: this.state.displayedCaretPosition * this._itemSpacing }}
                         style={{
-                            caretX: spring(this.state.displayedCaretPosition * this._itemSpacing, { stiffness: 600, damping: 25, precision: 20 })
+                            caretX: spring(this.state.displayedCaretPosition * this._itemSpacing, { stiffness: 200, damping: 20, precision: 5 })
                         }}
                         onRest={() => this._settleMotion()}
                     >{({ caretX }) => this._renderItems(caretX)}</Motion>
