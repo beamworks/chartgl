@@ -239,9 +239,25 @@ class RandomChart extends React.PureComponent {
 class DemoStage extends React.PureComponent {
     constructor() {
         super();
+
+        this.state = {
+            isReady: false // require a click to be able to play sound on hover in Chrome
+        };
     }
 
     render() {
+        if (!this.state.isReady) {
+            return <div style={{
+                display: 'inline-block',
+                padding: '40px', // generous padding to help taps/clicks
+                fontFamily: 'Michroma, Arial, sans-serif',
+                fontSize: '24px',
+                cursor: 'pointer'
+            }} onClick={() => this.setState({ isReady: true })}>
+                Click / Tap
+            </div>
+        }
+
         return <div style={{
             display: 'inline-block'
         }}>
