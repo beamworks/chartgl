@@ -276,7 +276,7 @@ class BarChart3D extends React.PureComponent {
             centerY={0}
             centerZ={this._chartAreaH / 2}
             canvasRef={this._handleCanvasRef}
-            content3d={{
+            content3d={this.props.blank ? {} : {
                 [`translate3d(${-this._chartAreaW / 2}px, -40px, ${this._chartAreaH}px) rotateX(90deg)`]: (
                     this._values.map((value, index) => <div
                         key={index}
@@ -336,7 +336,7 @@ class BarChart3D extends React.PureComponent {
             left: 0
         }}>
             {/* animate when ready to render */}
-            {this.state.graphicsInitialized ? <Motion
+            {!this.props.blank && this.state.graphicsInitialized ? <Motion
                 defaultStyle={motionDefaultStyle}
                 style={motionStyle}
             >{motion => {
@@ -378,7 +378,7 @@ class BarChart3D extends React.PureComponent {
                 return null;
             }}</Motion> : null}
 
-            {this._values.map((value, index) => {
+            {this.props.blank ? null : this._values.map((value, index) => {
                 // position overlay content on bar top
                 vec3.set(
                     this._barTopVec3,

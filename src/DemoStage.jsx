@@ -162,15 +162,15 @@ class RandomChart extends React.PureComponent {
         ).map(itemSeed => getRandomizedFraction(itemSeed));
 
         this.state = {
-            isWarmedUp: !!props.inView
+            isAnimating: !!props.inView
         };
     }
 
     componentWillReceiveProps(nextProps) {
-        // one-time trigger for "warmed-up" state to start heavy main animation
+        // one-time trigger for animation state once in center view
         if (nextProps.inView) {
             this.setState({
-                isWarmedUp: true
+                isAnimating: true
             });
         }
     }
@@ -192,10 +192,8 @@ class RandomChart extends React.PureComponent {
                 color: this._palette[1]
             }}>Chart #{this._idNumber}</div>
 
-            {!this.state.isWarmedUp ? <div style={{
-                height: '480px', // match chart height
-                color: this._palette[1]
-            }}>...</div> : <BarChart3D
+            {<BarChart3D
+                blank={!this.state.isAnimating}
                 values={this._series}
                 width={640}
                 height={480}
