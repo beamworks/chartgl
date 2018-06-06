@@ -148,7 +148,7 @@ class RandomChart extends React.PureComponent {
         }
 
         // start with default palette at first, then randomize
-        const paletteIndex = Math.abs(props.position) > 2
+        const paletteIndex = Math.abs(props.position) > 1
             ? Math.floor(paletteSelector * colorPalettes.length)
             : 1;
         this._palette = colorPalettes[paletteIndex];
