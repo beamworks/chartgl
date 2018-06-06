@@ -18,69 +18,23 @@ const chirpSound = new Howl({
     volume: 0.5
 });
 
-const mockCoinList = [
-    'BITCOIN',
-    'ETHEREUM',
-    'DOGECOIN'
+const mockStockList = [
+    'Trading YTD',
+    'Last Session',
+    'After Hours'
 ];
 
-const mockProductList = [
-    'Burritos',
-    'Flat Bread',
-    'Mushrooms',
-    'Canelloni',
-    'Spring Water',
-    'Evaporated Milk',
-    'Pears',
-    'Pork',
-    'Passion Fruit',
-    'Iced Tea',
-    'Blueberry',
-    'Spinach',
-    'Tomato',
-    'Fuji Apples',
-    'Cream Soda',
-    'Pepper Squash',
-    'Mozzarella',
-    'Artichoke Hearts',
-    'Smoked Paprika',
-    'Muffin Mix',
-    'Arctic Char',
-    'Bagels',
-    'Enoki Mushroom',
-    'Ground Ginger',
-    'Caesar Salad',
-    'Spaghetti',
-    'Venison',
-    'Beets',
-    'Crab Meat',
-    'Tomato Paste',
-    'Pastry Flour',
-    'Chilli Paste'
+const mockSalesList = [
+    'Q1 Prev Year',
+    'Q3 This Year',
+    'YoY Change',
+    'Historical'
 ];
 
-const mockIndustryList = [
-    'Auto Parts',
-    'Banks',
-    'Biotechnology',
-    'Retail',
-    'Utilities',
-    'Electronics',
-    'Hotels',
-    'Chemicals',
-    'Pharma',
-    'Manufacturing',
-    'Medical',
-    'Mining',
-    'Office Supplies',
-    'Oil & Gas',
-    'Real Estate',
-    'Restaurants',
-    'Retail',
-    'Semiconductors',
-    'Telecom',
-    'Television',
-    'Trucking'
+const mockRequestMetricList = [
+    'Response',
+    'IO Wait',
+    'Peak Lag'
 ];
 
 // credit: https://gist.github.com/blixt/f17b47c62508be59987b
@@ -132,18 +86,18 @@ class RandomChart extends React.PureComponent {
 
         if (mode < 0.2) {
             this._textInfo = {
-                xLabel: 'CRYPTO: ' + mockCoinList[Math.floor(textSelector * mockCoinList.length)],
+                xLabel: 'STOCK: ' + mockStockList[Math.floor(textSelector * mockStockList.length)],
                 yLabel: 'PRICE'
             };
         } else if (mode < 0.6) {
             this._textInfo = {
-                xLabel: 'SALES: ' + mockProductList[Math.floor(textSelector * mockProductList.length)],
+                xLabel: 'SALES: ' + mockSalesList[Math.floor(textSelector * mockSalesList.length)],
                 yLabel: 'VOLUME'
             };
         } else {
             this._textInfo = {
-                xLabel: 'STOCK: ' + mockIndustryList[Math.floor(textSelector * mockIndustryList.length)],
-                yLabel: 'TRADE'
+                xLabel: 'REQUEST: ' + mockRequestMetricList[Math.floor(textSelector * mockRequestMetricList.length)],
+                yLabel: 'TIME (MS)'
             };
         }
 

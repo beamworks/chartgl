@@ -310,7 +310,7 @@ class BarChart3D extends React.PureComponent {
                         whiteSpace: 'nowrap',
 
                         fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '40px',
+                        fontSize: '32px',
                         lineHeight: 1,
                         letterSpacing: '-2px',
                         color: labelColorCss
@@ -323,7 +323,7 @@ class BarChart3D extends React.PureComponent {
                         whiteSpace: 'nowrap',
 
                         fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '48px',
+                        fontSize: '40px',
                         lineHeight: 1,
                         letterSpacing: '-2px',
                         color: labelColorCss
