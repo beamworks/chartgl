@@ -225,8 +225,8 @@ class DemoStage extends React.PureComponent {
                     margin: '60px 0 0',
                     justifyContent: 'space-between',
                     fontFamily: 'Courier New, mono',
-                    fontSize: '16px',
-                    letterSpacing: '-2px'
+                    fontSize: '18px',
+                    letterSpacing: '-1px'
                 }}
             >
                 <a
@@ -234,23 +234,23 @@ class DemoStage extends React.PureComponent {
                     style={{
                         padding: '0 5px',
                         color: '#fff',
-                        background: 'rgba(0, 0, 0, 0.5)',
-                        opacity: 0.3,
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        opacity: 0.6,
                         outline: 'none', // @todo this breaks accessibility
                         textDecoration: 'none'
                     }}
-                >ChartGL: an experiment in React + WebGL + CSS3D</a>
+                >React + WebGL + CSS3D + Motion</a>
                 <a
-                    href="https://twitter.com/unframework"
+                    href="https://beamworks.io"
                     style={{
                         padding: '0 5px',
                         color: '#fff',
-                        background: 'rgba(0, 0, 0, 0.5)',
-                        opacity: 0.3,
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        opacity: 0.6,
                         outline: 'none', // @todo this breaks accessibility
                         textDecoration: 'none'
                     }}
-                >(by Nick Matantsev)</a>
+                >beamworks.io</a>
             </div>
         </div>;
     }
