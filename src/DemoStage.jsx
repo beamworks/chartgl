@@ -6,15 +6,9 @@ import Carousel from './Carousel.jsx';
 import BarChart3D from './BarChart3D.jsx';
 import PieChart3D from './PieChart3D.jsx';
 import bumpUrl from './bump.wav';
-import chirpUrl from './chirp.wav';
 
 const bumpSound = new Howl({
     src: [ bumpUrl ],
-    volume: 0.5
-});
-
-const chirpSound = new Howl({
-    src: [ chirpUrl ],
     volume: 0.5
 });
 
@@ -181,7 +175,7 @@ class RandomChart extends React.PureComponent {
                     </span>
                 </BumpSound> : null}
                 onBarClick={() => {
-                    chirpSound.play();
+                    bumpSound.play();
                 }}
             />}
         </div>;

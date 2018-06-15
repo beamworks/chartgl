@@ -1,4 +1,5 @@
 import React from 'react';
+import { Timeout } from 'react-dynamics';
 import { Motion, spring } from 'react-motion';
 import FaAngleLeft from 'react-icons/lib/fa/angle-left';
 import FaAngleRight from 'react-icons/lib/fa/angle-right';
@@ -6,9 +7,15 @@ import FaAngleRight from 'react-icons/lib/fa/angle-right';
 import Wobbler from './Wobbler.jsx';
 
 import boopUrl from './boop.wav';
+import chirpUrl from './chirp.wav';
 
 const boopSound = new Howl({
     src: [ boopUrl ]
+});
+
+const chirpSound = new Howl({
+    src: [ chirpUrl ],
+    volume: 0.5
 });
 
 class Carousel extends React.PureComponent {
@@ -17,6 +24,7 @@ class Carousel extends React.PureComponent {
 
         this._itemWidth = 800 - 20;
         this._itemSpacing = this._itemWidth + 40;
+        this._minBound = 0;
 
         this._renderedPositionMin = 0;
         this._renderedPositionMax = 0;
@@ -31,7 +39,8 @@ class Carousel extends React.PureComponent {
 
     _startIntent(delta) {
         // first pre-render the item(s) needed for transition
-        const nextPosition = this.state.caretPosition + delta;
+        // (allowing caret position to temporarily be out of bounds)
+        const nextPosition = Math.max(this._minBound - 1, this.state.caretPosition + delta);
 
         this.setState({
             caretPosition: nextPosition,
@@ -51,10 +60,20 @@ class Carousel extends React.PureComponent {
 
     _settleMotion() {
         // clobber all non-displayed items once animation is done
+        // (if animation rests out of bounds, keep showing the first valid slot)
         this.setState({
             positionMin: this.state.caretPosition,
-            positionMax: this.state.caretPosition
+            positionMax: Math.max(this._minBound, this.state.caretPosition)
         });
+    }
+
+    _renderPushBack(isActive) {
+        // after short delay, nudge back to minimum bound
+        return <Timeout on={isActive} delayMs={100} then={() => {
+            if (this.state.caretPosition < this._minBound) {
+                this._startIntent(1);
+            }
+        }}>{() => null}</Timeout>;
     }
 
     _renderItems(caretX) {
@@ -75,16 +94,21 @@ class Carousel extends React.PureComponent {
                     marginLeft: `${-(this._itemWidth) / 2}px`
                 }}
             >
-                {this.props.renderItem(
-                    position,
-                    position === this.state.caretPosition,
-                    Math.abs(position - caretX / this._itemSpacing) < 0.2
-                )}
+                {position < this._minBound
+                    ? this._renderPushBack(position === this.state.caretPosition)
+                    : this.props.renderItem(
+                        position,
+                        position === this.state.caretPosition,
+                        Math.abs(position - caretX / this._itemSpacing) < 0.2
+                    )
+                }
             </div>)}
         </React.Fragment>;
     }
 
     _renderNavButton(delta, icon) {
+        const isBoundedAction = this.state.caretPosition + delta < this._minBound;
+
         return <Wobbler
             size={100}
             activeSize={120}
@@ -102,6 +126,7 @@ class Carousel extends React.PureComponent {
             border: 0,
             borderRadius: '3px',
             outline: 0, // @todo a11y
+            opacity: isBoundedAction ? 0.3 : 1,
             color: '#fff',
             fontFamily: 'Michroma, Arial, sans-serif',
             fontSize: '24px',
@@ -110,13 +135,24 @@ class Carousel extends React.PureComponent {
             this._startIntent(delta);
 
             triggerWobble();
-            boopSound.play();
+
+            // audio response
+            if (isBoundedAction) {
+                chirpSound.play();
+            } else {
+                boopSound.play();
+            }
         }}>
             {icon}
         </button>}</Wobbler>;
     }
 
     render() {
+        const isWithinBounds = this.state.displayedCaretPosition >= this._minBound;
+        const caretTargetX = isWithinBounds
+            ? this.state.displayedCaretPosition * this._itemSpacing
+            : this._minBound * this._itemSpacing - 20;
+
         return <div style={{
             display: 'inline-block',
             width: '700px',
@@ -136,9 +172,9 @@ class Carousel extends React.PureComponent {
                     marginBottom: '10px'
                 }}>
                     <Motion
-                        defaultStyle={{ caretX: this.state.displayedCaretPosition * this._itemSpacing }}
+                        defaultStyle={{ caretX: caretTargetX }}
                         style={{
-                            caretX: spring(this.state.displayedCaretPosition * this._itemSpacing, { stiffness: 200, damping: 20, precision: 5 })
+                            caretX: spring(caretTargetX, { stiffness: isWithinBounds ? 200 : 2000, damping: 20, precision: isWithinBounds ? 5 : 1 })
                         }}
                         onRest={() => this._settleMotion()}
                     >{({ caretX }) => this._renderItems(caretX)}</Motion>
