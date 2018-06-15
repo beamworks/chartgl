@@ -91,7 +91,7 @@ class RandomChart extends React.PureComponent {
         } else {
             this._textInfo = {
                 xLabel: 'REQUEST: ' + mockRequestMetricList[Math.floor(textSelector * mockRequestMetricList.length)],
-                yLabel: 'TIME (MS)'
+                yLabel: 'TIME (ms)'
             };
         }
 
@@ -187,7 +187,7 @@ class DemoStage extends React.PureComponent {
         super();
 
         this.state = {
-            isReady: false // require a click to be able to play sound on hover in Chrome
+            isReady: process.env.NODE_ENV === 'development' // require a click to be able to play sound on hover in Chrome
         };
     }
 
