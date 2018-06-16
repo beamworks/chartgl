@@ -1,16 +1,31 @@
 import colorPalettes from 'nice-color-palettes';
 import React from 'react';
 import { Motion, spring } from 'react-motion';
+import FaAngleLeft from 'react-icons/lib/fa/angle-left';
+import FaAngleRight from 'react-icons/lib/fa/angle-right';
 
 import Carousel from './Carousel.jsx';
 import BarChart3D from './BarChart3D.jsx';
 import PieChart3D from './PieChart3D.jsx';
 import bumpUrl from './bump.wav';
+import boopUrl from './boop.wav';
+import chirpUrl from './chirp.wav';
 
 import './DemoStage.scss';
 
+import Wobbler from './Wobbler.jsx';
+
 const bumpSound = new Howl({
     src: [ bumpUrl ],
+    volume: 0.5
+});
+
+const boopSound = new Howl({
+    src: [ boopUrl ]
+});
+
+const chirpSound = new Howl({
+    src: [ chirpUrl ],
     volume: 0.5
 });
 
@@ -166,9 +181,42 @@ class DemoStage extends React.PureComponent {
     constructor() {
         super();
 
+        this._carousel = null; // carousel control node
+
         this.state = {
             isReady: process.env.NODE_ENV === 'development' // require a click to be able to play sound on hover in Chrome
         };
+    }
+
+    _renderNavButton(delta, icon) {
+        const isBoundedAction = false; // @todo this
+
+        return <Wobbler
+            size={100}
+            activeSize={120}
+            stiffness={800}
+            damping={15}
+        >{(size, triggerWobble) => <button
+            data-bounded={isBoundedAction}
+            data-forward={delta > 0}
+            style={{
+                transform: `scale(${(100 + 0.5 * (size - 100)) / 100}, ${100 / size})`
+            }}
+            onClick={() => {
+                this._carousel.changeCaretPosition(delta);
+
+                triggerWobble();
+
+                // audio response
+                if (isBoundedAction) {
+                    chirpSound.play();
+                } else {
+                    boopSound.play();
+                }
+            }}
+        >
+            {icon}
+        </button>}</Wobbler>;
     }
 
     render() {
@@ -180,10 +228,16 @@ class DemoStage extends React.PureComponent {
 
         return <div className="demo-stage">
             <Carousel
+                ref={node => this._carousel = node}
                 renderItem={(position, isActive, isInView) => <div className="demo-stage__carousel-item">
                     <RandomChart position={position} active={isActive} inView={isInView} />
                 </div>}
             />
+
+            <div className="_nav">
+                {this._renderNavButton(-1, <FaAngleLeft />)}
+                {this._renderNavButton(1, <FaAngleRight />)}
+            </div>
 
             <div className="_footer">
                 <a href="https://github.com/beamworks/chartgl">
