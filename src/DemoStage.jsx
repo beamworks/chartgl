@@ -7,6 +7,8 @@ import BarChart3D from './BarChart3D.jsx';
 import PieChart3D from './PieChart3D.jsx';
 import bumpUrl from './bump.wav';
 
+import './DemoStage.scss';
+
 const bumpSound = new Howl({
     src: [ bumpUrl ],
     volume: 0.5
@@ -129,16 +131,10 @@ class RandomChart extends React.PureComponent {
             document.body.style.background = this._palette[0];
         }
 
-        return <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-        }}>
-            <div style={{
-                fontFamily: 'Michroma, Arial, sans-serif',
-                fontSize: '24px',
-                color: this._palette[1]
-            }}>Chart #{this._idNumber}</div>
+        return <div className="random-chart">
+            <div className="_title" style={{ color: this._palette[1] }}>
+                Chart #{this._idNumber}
+            </div>
 
             {<BarChart3D
                 blank={!this.state.isAnimating}
@@ -152,25 +148,9 @@ class RandomChart extends React.PureComponent {
                 highlightColor={this._palette[2]}
                 labelColor={this._palette[1]}
                 renderBar={(index, isActive) => isActive ? <BumpSound>
-                    <span style={{
-                        position: 'absolute',
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        color: '#444',
-                        padding: '0px 10px 3px', // vertical alignment nudge
-                        borderRadius: '5px',
-                        fontFamily: 'Michroma, Arial, sans-serif',
-                        fontSize: '20px',
-                        transform: 'translate(-50%, -100%) translate(0, -8px)'
-                    }}>
-                        <span style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: '50%',
-                            marginLeft: '-8px',
-                            borderLeft: '8px solid transparent',
-                            borderRight: '8px solid transparent',
-                            borderTop: '8px solid rgba(255, 255, 255, 0.9)'
-                        }} />
+                    <span className="random-chart__hover-label">
+                        <span className="_arrow" />
+
                         {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
                     </span>
                 </BumpSound> : null}
@@ -193,64 +173,25 @@ class DemoStage extends React.PureComponent {
 
     render() {
         if (!this.state.isReady) {
-            return <div style={{
-                display: 'inline-block',
-                padding: '40px', // generous padding to help taps/clicks
-                fontFamily: 'Michroma, Arial, sans-serif',
-                fontSize: '24px',
-                cursor: 'pointer'
-            }} onClick={() => this.setState({ isReady: true })}>
+            return <div className="demo-stage-prelude" onClick={() => this.setState({ isReady: true })}>
                 Click / Tap
             </div>
         }
 
-        return <div style={{
-            display: 'inline-block'
-        }}>
+        return <div className="demo-stage">
             <Carousel
-                renderItem={(position, isActive, isInView) => <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width: '100%',
-                    height: '100%'
-                }}>
+                renderItem={(position, isActive, isInView) => <div className="demo-stage__carousel-item">
                     <RandomChart position={position} active={isActive} inView={isInView} />
                 </div>}
             />
 
-            <div
-                style={{
-                    display: 'flex',
-                    margin: '60px 0 0',
-                    justifyContent: 'space-between',
-                    fontFamily: 'Courier New, mono',
-                    fontSize: '18px',
-                    letterSpacing: '-1px'
-                }}
-            >
-                <a
-                    href="https://github.com/beamworks/chartgl"
-                    style={{
-                        padding: '0 5px',
-                        color: '#fff',
-                        background: 'rgba(0, 0, 0, 0.25)',
-                        opacity: 0.6,
-                        outline: 'none', // @todo this breaks accessibility
-                        textDecoration: 'none'
-                    }}
-                >React + WebGL + CSS3D + Motion</a>
-                <a
-                    href="https://beamworks.io"
-                    style={{
-                        padding: '0 5px',
-                        color: '#fff',
-                        background: 'rgba(0, 0, 0, 0.25)',
-                        opacity: 0.6,
-                        outline: 'none', // @todo this breaks accessibility
-                        textDecoration: 'none'
-                    }}
-                >beamworks.io</a>
+            <div className="_footer">
+                <a href="https://github.com/beamworks/chartgl">
+                    React + WebGL + CSS3D + Motion
+                </a>
+                <a href="https://beamworks.io">
+                    beamworks.io
+                </a>
             </div>
         </div>;
     }
