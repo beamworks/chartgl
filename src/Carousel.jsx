@@ -6,8 +6,7 @@ class Carousel extends React.PureComponent {
     constructor() {
         super();
 
-        this._itemWidth = 800 - 20;
-        this._itemSpacing = this._itemWidth + 40;
+        this._itemSpacingPercent = 120;
         this._minBound = 0;
 
         this._renderedPositionMin = 0;
@@ -78,7 +77,8 @@ class Carousel extends React.PureComponent {
 
         return <div style={{
             position: 'relative',
-            flex: 1
+            width: '100%',
+            height: '100%'
         }}>
             {positions.map(position => <div
                 key={position}
@@ -87,9 +87,8 @@ class Carousel extends React.PureComponent {
                     position: 'absolute',
                     top: 0,
                     bottom: 0,
-                    left: `${position * this._itemSpacing - caretX}px`,
-                    width: `${this._itemWidth}px`,
-                    marginLeft: `${-(this._itemWidth) / 2}px`
+                    left: `${position * this._itemSpacingPercent - caretX}%`,
+                    width: '100%',
                 }}
             >
                 {position < this._minBound
@@ -97,7 +96,7 @@ class Carousel extends React.PureComponent {
                     : this.props.renderItem(
                         position,
                         position === this.state.caretPosition,
-                        Math.abs(position - caretX / this._itemSpacing) < 0.2
+                        Math.abs(position - caretX / this._itemSpacingPercent) < 0.2
                     )
                 }
             </div>)}
@@ -107,38 +106,30 @@ class Carousel extends React.PureComponent {
     render() {
         const isWithinBounds = this.state.displayedCaretPosition >= this._minBound;
         const caretTargetX = isWithinBounds
-            ? this.state.displayedCaretPosition * this._itemSpacing
-            : this._minBound * this._itemSpacing - 20;
+            ? this.state.displayedCaretPosition * this._itemSpacingPercent
+            : this._minBound * this._itemSpacingPercent - 2.5;
 
         return <div style={{
-            display: 'inline-block',
-            width: '700px',
-            height: '620px',
+            display: 'block',
+            width: '100%',
+            height: '100%',
             overflow: 'hidden'
         }}>
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                height: '100%',
-                alignItems: 'center'
-            }}>
-                <Motion
-                    defaultStyle={{
-                        caretX: caretTargetX
-                    }}
-                    style={{
-                        caretX: spring(caretTargetX, {
-                            stiffness: isWithinBounds ? 200 : 2000,
-                            damping: 20,
-                            precision: isWithinBounds ? 5 : 1
-                        })
-                    }}
-                    onRest={() => this._settleMotion()}
-                >{({ caretX }) =>
-                    this._renderItems(caretX)
-                }</Motion>
-            </div>
+            <Motion
+                defaultStyle={{
+                    caretX: caretTargetX
+                }}
+                style={{
+                    caretX: spring(caretTargetX, {
+                        stiffness: isWithinBounds ? 200 : 2000,
+                        damping: 20,
+                        precision: isWithinBounds ? 1 : 0.2
+                    })
+                }}
+                onRest={() => this._settleMotion()}
+            >{({ caretX }) =>
+                this._renderItems(caretX)
+            }</Motion>
         </div>;
     }
 }

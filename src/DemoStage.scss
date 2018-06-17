@@ -41,6 +41,11 @@
 .demo-stage {
     display: inline-block;
 
+    > ._carousel {
+        width: 720px;
+        height: 520px;
+    }
+
     &__carousel-item {
         display: flex;
         justify-content: center;

@@ -228,13 +228,15 @@ class DemoStage extends React.PureComponent {
         }
 
         return <div className="demo-stage">
-            <Carousel
-                ref={node => this._carousel = node}
-                onCaretChange={(caret, isAtLowerBound) => this.setState({ carouselIsAtLowerBound: isAtLowerBound })}
-                renderItem={(position, isActive, isInView) => <div className="demo-stage__carousel-item">
-                    <RandomChart position={position} active={isActive} inView={isInView} />
-                </div>}
-            />
+            <div className="_carousel">
+                <Carousel
+                    ref={node => this._carousel = node}
+                    onCaretChange={(caret, isAtLowerBound) => this.setState({ carouselIsAtLowerBound: isAtLowerBound })}
+                    renderItem={(position, isActive, isInView) => <div className="demo-stage__carousel-item">
+                        <RandomChart position={position} active={isActive} inView={isInView} />
+                    </div>}
+                />
+            </div>
 
             <div className="_nav">
                 {this._renderNavButton(-1, <FaAngleLeft />)}
