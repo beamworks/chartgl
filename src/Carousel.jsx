@@ -45,6 +45,12 @@ class Carousel extends React.PureComponent {
                 };
             });
         });
+
+        // report caret position (normalized within bounds)
+        this.props.onCaretChange && this.props.onCaretChange(
+            Math.max(this._minBound, nextPosition),
+            nextPosition <= this._minBound
+        );
     }
 
     _settleMotion() {

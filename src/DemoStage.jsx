@@ -184,12 +184,13 @@ class DemoStage extends React.PureComponent {
         this._carousel = null; // carousel control node
 
         this.state = {
+            carouselIsAtLowerBound: true,
             isReady: process.env.NODE_ENV === 'development' // require a click to be able to play sound on hover in Chrome
         };
     }
 
     _renderNavButton(delta, icon) {
-        const isBoundedAction = false; // @todo this
+        const isBoundedAction = delta < 0 && this.state.carouselIsAtLowerBound;
 
         return <Wobbler
             size={100}
@@ -229,6 +230,7 @@ class DemoStage extends React.PureComponent {
         return <div className="demo-stage">
             <Carousel
                 ref={node => this._carousel = node}
+                onCaretChange={(caret, isAtLowerBound) => this.setState({ carouselIsAtLowerBound: isAtLowerBound })}
                 renderItem={(position, isActive, isInView) => <div className="demo-stage__carousel-item">
                     <RandomChart position={position} active={isActive} inView={isInView} />
                 </div>}
