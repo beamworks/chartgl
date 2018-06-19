@@ -45,7 +45,7 @@
     flex-direction: column;
 
     > ._prelude {
-        margin: auto;
+        text-align: center;
         padding: 40px; // generous padding to help taps/clicks
         font-family: Michroma, Arial, sans-serif;
         font-size: 24px;
@@ -79,7 +79,8 @@
 
         > button {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             width: 80px;
             margin: 10px 10px; // extra vertical space for wobble to not get cut off
             padding: 15px 0;
@@ -91,6 +92,10 @@
             font-family: Michroma, Arial, sans-serif;
             font-size: 24px;
             cursor: pointer;
+            user-select: none; // prevent default mobile highlight
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 
             &[data-forward="false"] {
                 transform-origin: 120% 50%;
@@ -108,7 +113,7 @@
 
     > ._footer {
         display: flex;
-        margin: 60px auto 0;
+        margin: 30px auto 0;
         width: 100%;
         max-width: 640px;
         justify-content: space-between;
