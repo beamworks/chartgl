@@ -16,10 +16,7 @@ module.exports = {
             {
                 test: /\.wav$/,
                 use: [ {
-                    loader: 'url-loader',
-                    options: {
-                        limit: 40000
-                    }
+                    loader: 'file-loader'
                 } ]
             },
 
