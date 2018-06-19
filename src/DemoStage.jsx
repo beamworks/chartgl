@@ -224,9 +224,11 @@ class DemoStage extends React.PureComponent {
 
     render() {
         if (!this.state.isReady) {
-            return <div className="demo-stage-prelude" onClick={() => this.setState({ isReady: true })}>
-                Click / Tap
-            </div>
+            return <div className="demo-stage">
+                <div className="_prelude" onClick={() => this.setState({ isReady: true })}>
+                    Click / Tap
+                </div>
+            </div>;
         }
 
         return <div className="demo-stage">
