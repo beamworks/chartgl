@@ -32,15 +32,17 @@ class Chart3DScene extends React.PureComponent {
             style={{
                 position: 'relative',
                 display: 'inline-block',
-                width: this.props.viewportWidth + 'px',
-                height: this.props.viewportHeight + 'px'
+                width: '100%',
+                height: '100%'
             }}
         >
             <canvas
                 style={{
                     position: 'absolute',
                     top: 0,
-                    left: 0
+                    left: 0,
+                    width: '100%',
+                    height: '100%'
                 }}
                 width={this.props.viewportWidth}
                 height={this.props.viewportHeight}
@@ -52,16 +54,20 @@ class Chart3DScene extends React.PureComponent {
                 zIndex: 0, // reset stacking context
                 top: 0,
                 left: 0,
-                width: 0,
-                height: 0,
 
                 // apply camera matrix, center transform and emulate WebGL device coord range (-1, 1)
-                transformStyle: 'preserve-3d',
-                transform: `
-                    translate(${this.props.viewportWidth / 2}px, ${this.props.viewportHeight / 2}px)
-                    scale(${this.props.viewportWidth / 2}, ${-this.props.viewportHeight / 2})
-                    ${cameraCssMat}
-                `
+                transformStyle: 'preserve-3d'
+            }} ref={(node) => {
+                if (node) {
+                    const realViewWidth = node.parentElement.offsetWidth;
+                    const realViewHeight = node.parentElement.offsetHeight;
+
+                    node.style.transform = `
+                        translate(${realViewWidth / 2}px, ${realViewHeight / 2}px)
+                        scale(${realViewWidth / 2}, ${-realViewHeight / 2})
+                        ${cameraCssMat}
+                    `;
+                }
             }}>
                 {Object.keys(this.props.content3d).map(modelTransform => <div
                     key={modelTransform}

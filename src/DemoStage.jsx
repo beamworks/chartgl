@@ -151,28 +151,30 @@ class RandomChart extends React.PureComponent {
                 Chart #{this._idNumber}
             </div>
 
-            {<BarChart3D
-                blank={!this.state.isAnimating}
-                values={this._series}
-                width={640}
-                height={480}
-                xLabel={this._textInfo.xLabel}
-                yLabel={this._textInfo.yLabel}
-                baseColor={this._palette[3]}
-                secondaryColor={this._palette[4]}
-                highlightColor={this._palette[2]}
-                labelColor={this._palette[1]}
-                renderBar={(index, isActive) => isActive ? <BumpSound>
-                    <span className="random-chart__hover-label">
-                        <span className="_arrow" />
+            <div className="_chart">
+                <BarChart3D
+                    blank={!this.state.isAnimating}
+                    values={this._series}
+                    width={640}
+                    height={480}
+                    xLabel={this._textInfo.xLabel}
+                    yLabel={this._textInfo.yLabel}
+                    baseColor={this._palette[3]}
+                    secondaryColor={this._palette[4]}
+                    highlightColor={this._palette[2]}
+                    labelColor={this._palette[1]}
+                    renderBar={(index, isActive) => isActive ? <BumpSound>
+                        <span className="random-chart__hover-label">
+                            <span className="_arrow" />
 
-                        {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
-                    </span>
-                </BumpSound> : null}
-                onBarClick={() => {
-                    bumpSound.play();
-                }}
-            />}
+                            {'0.' + Math.floor(100 + this._series[index] * 100).toString().slice(-2)}
+                        </span>
+                    </BumpSound> : null}
+                    onBarClick={() => {
+                        bumpSound.play();
+                    }}
+                />
+            </div>
         </div>;
     }
 }

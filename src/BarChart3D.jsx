@@ -333,7 +333,10 @@ class BarChart3D extends React.PureComponent {
         >{(cameraMat4) => <div style={{
             position: 'absolute',
             top: 0,
-            left: 0
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none' // allow underlying hover areas to work as intended
         }}>
             {/* animate when ready to render */}
             {!this.props.blank && this.state.graphicsInitialized ? <Motion
@@ -390,8 +393,8 @@ class BarChart3D extends React.PureComponent {
                 vec3.transformMat4(this._barTopVec3, this._barTopVec3, cameraMat4);
 
                 // convert from GL device space (-1 .. 1) to 2D CSS space
-                const x = (0.5 + 0.5 * this._barTopVec3[0]) * this._width;
-                const y = (0.5 - 0.5 * this._barTopVec3[1]) * this._height;
+                const x = (0.5 + 0.5 * this._barTopVec3[0]) * 100;
+                const y = (0.5 - 0.5 * this._barTopVec3[1]) * 100;
 
                 const barContent = this.props.renderBar && this.props.renderBar(
                     index,
@@ -403,8 +406,9 @@ class BarChart3D extends React.PureComponent {
                     key={index}
                     style={{
                         position: 'absolute',
-                        top: `${y}px`,
-                        left: `${x}px`
+                        top: `${y}%`,
+                        left: `${x}%`,
+                        pointerEvents: 'auto' // restore interactivity
                     }}
                     onMouseEnter={() => { this._setBarIsActive(index, true); }}
                     onMouseLeave={() => { this._setBarIsActive(index, false); }}
