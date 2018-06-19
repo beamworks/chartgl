@@ -54,6 +54,10 @@
 
     > ._carousel {
         height: 520px;
+
+        @media (max-width: 420px) {
+            height: 320px;
+        }
     }
 
     &__carousel-item {
@@ -101,19 +105,31 @@
     > ._footer {
         display: flex;
         margin: 60px auto 0;
+        width: 100%;
         max-width: 640px;
         justify-content: space-between;
+        align-items: flex-start;
         font-family: Courier New, mono;
         font-size: 18px;
         letter-spacing: -1px;
 
+        padding: 3px 0;
+        background: rgba(0, 0, 0, 0.15);
+
+        @media (max-width: 720px) {
+            flex-direction: column;
+        }
+
         > a {
-            padding: 0 5px;
+            margin: 3px 10px;
             color: #fff;
-            background: rgba(0, 0, 0, 0.25);
             opacity: 0.6;
             outline: none; // @todo this breaks accessibility
             text-decoration: none;
+
+            &:last-child {
+                font-weight: bold;
+            }
         }
     }
 }
